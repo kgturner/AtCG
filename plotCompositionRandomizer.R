@@ -62,6 +62,7 @@ pred10 <- predplots[1:10,11:20]
 # pred10v11 <- as.integer(pred10indexv11$index)
 # plist <- list(pred10v11=pred10v11)
 
+pred10index <- NULL
 for (i in names(pred10)){
   indexv <- subset(pool60, CS_number %in% pred10[,i], select=c(index, CS_number))
   pred10index <- c(pred10index, list(as.integer(indexv$index)))
@@ -79,21 +80,47 @@ while (length(pred10index) < 20) {
 
 ####convert index numbers to CS numbers in df####
 pred10df <- data.frame(matrix(unlist(pred10index),nrow=20, byrow=T))
-pred10df$plotType <- "pred"
-pred10df[11:20,]$plotType <- "div"
-pred10df$plotNo <- c(11:20,71:80)
 
-for (i in names(pred10df)[1:10]){
-  csx <- subset(pool60, index %in% pred10df[,i], select=c(index, CS_number))
-  pred10df_cs <-dataframe(csx$CS_number)
+pred10df_cs <- pred10df
+pred10df_cs[] <- pool60$CS_number[match(unlist(pred10df),pool60$index)]
+
+pred10df_cs$plotType <- "pred"
+pred10df_cs[11:20,]$plotType <- "div"
+pred10df_cs$plotNo <- c(11:20,71:80)
+
+####save prediction and diversity 10 plot composition####
+write.table(pred10df_cs, "pred_div_10composition.txt", sep="\t")
+
+####repeat all steps for 20 plot####
+# pool60 <- read.delim("chosenLines.csv", header=TRUE, sep=",")
+# pool60$index <- rownames(pool60)
+# 
+# predplots <- read.delim("PredictedCombs.csv", header=TRUE, sep=",")
+pred20 <- predplots[1:20,21:30]
+
+pred20index <- NULL
+for (i in names(pred20)){
+  indexv <- subset(pool60, CS_number %in% pred20[,i], select=c(index, CS_number))
+  pred20index <- c(pred20index, list(as.integer(indexv$index)))
 }
+preplot_byindex20 <- pred20index #this list contains vectors that are the index values for the prediction plots only
 
+#generate plot defaults pool=60, size=10, overlap=4
+#length of pred20index should be 20 (because 10 predicition plots and 10 diversity plots)
 
-
-for (i in pred10index){
-  
-  indexv <- subset(pool60, index %in% pred10index[,i], select=c(index, CS_number))
-  pred10df <- c(pred10index, list(as.integer(indexv$index)))
+while (length(pred20index) < 20) {
+  fail <- FALSE
+  pred20index <- c(pred20index, list(generate_plot(pred20index, size=20, overlap=8)))
 }
+#pred20index is now a list of both the prediction and diversity plots of 20 genotypes
 
+pred20df <- data.frame(matrix(unlist(pred20index),nrow=20, byrow=T))
 
+pred20df_cs <- pred20df
+pred20df_cs[] <- pool60$CS_number[match(unlist(pred20df),pool60$index)]
+
+pred20df_cs$plotType <- "pred"
+pred20df_cs[11:20,]$plotType <- "div"
+pred20df_cs$plotNo <- c(21:30,81:90)
+
+write.table(pred20df_cs, "pred_div_20composition.txt", sep="\t")
