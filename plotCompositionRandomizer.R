@@ -108,11 +108,16 @@ preplot_byindex20 <- pred20index #this list contains vectors that are the index 
 #generate plot defaults pool=60, size=10, overlap=4
 #length of pred20index should be 20 (because 10 predicition plots and 10 diversity plots)
 
-while (length(pred20index) < 20) {
+#for some reason this generates some null vectors... so overshoot for 30
+
+while (length(pred20index) < 30) {
   fail <- FALSE
-  pred20index <- c(pred20index, list(generate_plot(pred20index, size=20, overlap=8)))
+  pred20index <- c(pred20index, list(generate_plot(pred20index, size=20, overlap=9)))
 }
 #pred20index is now a list of both the prediction and diversity plots of 20 genotypes
+
+#remove nulls
+pred20index <- pred20index[-which(sapply(pred20index, is.null))]
 
 pred20df <- data.frame(matrix(unlist(pred20index),nrow=20, byrow=T))
 
