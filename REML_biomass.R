@@ -51,7 +51,7 @@ model4<-lmer(FH_Wt ~ trt+(1|stripNo), data=modeldata)
 model5<-lmer(FH_Wt ~ divLevel+(1|stripNo), data=modeldata)
 model6<-lmer(FH_Wt ~ trt+(1|stripNo)+(1|GermRating), data=modeldata)
 model7<-lmer(FH_Wt ~ trt+(1|stripNo)+(1|PlantNum_Initial), data=modeldata)
-model8<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata) ########
+model8<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata) ####
 model9<-lmer(FH_Wt ~ trt+FT1001plast_mean+(1|stripNo), data=modeldata)
 model10<-lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo), data=modeldata)##
 model11<-lmer(FH_Wt ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo), data=modeldata)
@@ -141,6 +141,113 @@ model7_gen<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata)
 (ax <- anova(model6_gen,model10)) #no sig diff
 
 ####canopy area####
+#dataset for modeling
+modeldata<-fieldData[!is.na(fieldData$CanopyArea),]
+
+#example full models
+#CanopyArea ~ diversity level * stress trt *  plot average climate pca distance from PSU(PC5dist_mean) + density after transplant + (1| block)
+#CanopyArea ~ plot average genetic distance (meanKin) * stress trt * climate pca(PC5dist_mean) + density after transplant + (1| block)
+
+#div level models
+model1<-lmer(CanopyArea ~ divLevel*trt+PC5dist_mean+(1|stripNo) + (1 | GermRating), data=modeldata)
+model2<-lmer(CanopyArea ~ divLevel+trt+PC5dist_mean+(1|stripNo) + (1 | GermRating), data=modeldata)
+model3<-lmer(CanopyArea ~ divLevel+trt+(1|stripNo) + (1 | GermRating), data=modeldata)
+model4<-lmer(CanopyArea ~ trt+(1|stripNo) + (1 | GermRating), data=modeldata)
+model4a <- lmer(CanopyArea ~ trt+(1|stripNo) + (1|PlantNum_Initial), data=modeldata)
+model5<-lmer(CanopyArea ~ divLevel+(1|stripNo) + (1 | GermRating), data=modeldata)
+model6<-lmer(CanopyArea ~ trt+(1|stripNo), data=modeldata)
+model7<-lmer(CanopyArea ~ trt+(1|stripNo)+ (1 | GermRating) + (1|PlantNum_Initial), data=modeldata)
+
+model8<-lmer(CanopyArea ~ trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), data=modeldata) ####
+model9<-lmer(CanopyArea ~ trt+FT1001plast_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+model10<-lmer(CanopyArea ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)##
+model11<-lmer(CanopyArea ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+
+(a1 <- anova(model2,model1)) # is interaction sig? no
+(a2 <- anova(model3,model2)) # is PC5dist_mean covariate sig? no
+(a3 <- anova(model4, model3)) #is divLevel sig? no
+(a4 <- anova(model5, model3)) #is trt sig? yes
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model5: CanopyArea ~ divLevel + (1 | stripNo) + (1 | GermRating)
+# model3: CanopyArea ~ divLevel + trt + (1 | stripNo) + (1 | GermRating)
+# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+# model5  5 3007.8 3028.4 -1498.9   2997.8                             
+# model3  6 2901.1 2925.8 -1444.6   2889.1 108.68      1  < 2.2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(a5 <- anova(model4, model6)) #is germ rating sig? yes ###
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model6: CanopyArea ~ trt + (1 | stripNo)
+# model4: CanopyArea ~ trt + (1 | stripNo) + (1 | GermRating)
+# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+# model6  4 2911.6 2928.0 -1451.8   2903.6                             
+# model4  5 2899.2 2919.7 -1444.6   2889.2 14.403      1  0.0001476 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(a6 <- anova(model4, model7)) #is initial plant number sig? no
+(a6a <- anova(model4a, model4)) #is germ better than plant num? yes
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model4a: CanopyArea ~ trt + (1 | stripNo) + (1 | PlantNum_Initial)
+# model4: CanopyArea ~ trt + (1 | stripNo) + (1 | GermRating)
+# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+# model4a  5 2909.3 2929.9 -1449.7   2899.3                             
+# model4   5 2899.2 2919.7 -1444.6   2889.2 10.162      0  < 2.2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(a7 <- anova(model4, model8)) #is FT1001 mean sig? no
+(a8 <- anova(model4, model9)) #is FT1001plasticity sig? no
+(a9 <- anova(model8, model10)) #is div level sig with FT1001mean included? no
+(a10 <- anova(model10, model11)) #is FT1001plast_mean sig if FT1001mean included? no
+
+
+
+
+
+#genetic distance models
+model1_gen<-lmer(CanopyArea ~ meanKin*trt+PC5dist_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+model2_gen<-lmer(CanopyArea ~ meanKin+trt+PC5dist_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+model3_gen<-lmer(CanopyArea ~ meanKin+trt+(1|stripNo)+ (1 | GermRating), data=modeldata)
+model4_gen<-lmer(CanopyArea ~ trt+(1|stripNo)+ (1 | GermRating), data=modeldata)
+model5_gen<-lmer(CanopyArea ~ meanKin+(1|stripNo)+ (1 | GermRating), data=modeldata)
+model6_gen<-lmer(CanopyArea ~ meanKin+trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+model7_gen<-lmer(CanopyArea ~ trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+
+(a1_gen <- anova(model2_gen,model1_gen)) # is interaction sig? no
+(a2_gen <- anova(model3_gen,model2_gen)) # is PC5dist_mean covariate sig? no
+(a3_gen <- anova(model4_gen, model3_gen)) #is meanKin sig? no
+(a4_gen <- anova(model5_gen, model3_gen)) #is trt sig? yes
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model5_gen: CanopyArea ~ meanKin + (1 | stripNo) + (1 | GermRating)
+# model3_gen: CanopyArea ~ meanKin + trt + (1 | stripNo) + (1 | GermRating)
+# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+# model5_gen  5 3007.8 3028.3 -1498.9   2997.8                             
+# model3_gen  6 2901.2 2925.8 -1444.6   2889.2 108.62      1  < 2.2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(a5_gen <- anova(model3_gen, model6_gen)) #is FT1001_mean sig? no
+(a6_gen <- anova(model7_gen, model6_gen)) #is meanKin sig with FT1001_mean?
+
+#compare meanKin and divlevel
+(ax <- anova(model3_gen,model3)) #are kin and div different?
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model3_gen: CanopyArea ~ meanKin + trt + (1 | stripNo) + (1 | GermRating)
+# model3: CanopyArea ~ divLevel + trt + (1 | stripNo) + (1 | GermRating)
+# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+# model3_gen  6 2901.2 2925.8 -1444.6   2889.2                             
+# model3      6 2901.1 2925.8 -1444.6   2889.1 0.0207      0  < 2.2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
 
 ########example using lme4.0#####
 exprs.LR<- function(trait,df,cov, family=gaussian){
