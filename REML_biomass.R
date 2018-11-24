@@ -102,6 +102,7 @@ model11<-lmer(FH_Wt ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo), dat
 
 
 #genetic distance models
+#include Germ_rating
 model1_gen<-lmer(FH_Wt ~ meanKin*trt+PC5dist_mean+(1|stripNo), data=modeldata)
 model2_gen<-lmer(FH_Wt ~ meanKin+trt+PC5dist_mean+(1|stripNo), data=modeldata)
 model3_gen<-lmer(FH_Wt ~ meanKin+trt+(1|stripNo), data=modeldata)
