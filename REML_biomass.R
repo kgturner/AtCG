@@ -33,12 +33,17 @@ lineData <- read.csv("chosenLines.csv")
 # meanKin (how calculated?) - mean knship among plants in a plot (1001 genomes kinship matrix
 # FT1001plast_mean - mean flowering time plasticity (reponse to 10 vs 16 C)
 # FT1001plast_var - variance in plasticity 
-
+# PlantNum_Initial - plants counted after 1 week in field (i.e. after transplant mortality)
+# GermRating - categorical assesment of germ 1 week (?) before transplant to field
 
 #####Final harvest weight####
 #dataset for modeling
 modeldata<-fieldData[!is.na(fieldData$FH_Wt),]
+summary(modeldata)
+subset(modeldata, GermRating =="NoGerm") #pot 74, no germ, yet PlantNum_Initial = 18, had canopy and FH_Wt
 
+
+###
 #example full models
 #biomass ~ diversity level * stress trt *  plot average climate pca distance from PSU(PC5dist_mean) + density after transplant + (1| block)
 #biomass ~ plot average genetic distance (meanKin) * stress trt * climate pca(PC5dist_mean) + density after transplant + (1| block)
@@ -55,10 +60,20 @@ model8<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata) ####
 model9<-lmer(FH_Wt ~ trt+FT1001plast_mean+(1|stripNo), data=modeldata)
 model10<-lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo), data=modeldata)##
 model11<-lmer(FH_Wt ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo), data=modeldata)
-
+model12 <- lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+model13 <- lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | PlantNum_Initial), data=modeldata)
+  
 (a1 <- anova(model2,model1)) # is interaction sig? no
 (a2 <- anova(model3,model2)) # is PC5dist_mean covariate sig? no
 (a3 <- anova(model4, model3)) #is divLevel sig? no
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model4: FH_Wt ~ trt + (1 | stripNo)
+# model3: FH_Wt ~ divLevel + trt + (1 | stripNo)
+# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
+# model4  4 -130.31 -114.05 69.155  -138.31                         
+# model3  5 -128.53 -108.20 69.267  -138.53 0.2237      1     0.6363
 (a4 <- anova(model5, model3)) #is trt sig? yes
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
@@ -96,7 +111,8 @@ model11<-lmer(FH_Wt ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo), dat
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 (a9 <- anova(model8, model10)) #is div level sig with FT1001mean included? no
 (a10 <- anova(model10, model11)) #is FT1001plast_mean sig if FT1001mean included? no
-
+(a11 <- anova(model10, model12)) #is germ rating sig? no
+(a12 <- anova(model10, model13)) #is plant number sig? no
 
 
 
@@ -113,6 +129,14 @@ model7_gen<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata)
 (a1_gen <- anova(model2_gen,model1_gen)) # is interaction sig? no
 (a2_gen <- anova(model3_gen,model2_gen)) # is PC5dist_mean covariate sig? no
 (a3_gen <- anova(model4_gen, model3_gen)) #is meanKin sig? no
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model4_gen: FH_Wt ~ trt + (1 | stripNo)
+# model3_gen: FH_Wt ~ meanKin + trt + (1 | stripNo)
+# Df     AIC     BIC logLik deviance Chisq Chi Df Pr(>Chisq)
+# model4_gen  4 -130.31 -114.05 69.155  -138.31                        
+# model3_gen  5 -129.14 -108.81 69.572  -139.14 0.834      1     0.3611
 (a4_gen <- anova(model5_gen, model3_gen)) #is trt sig? yes
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
@@ -138,7 +162,23 @@ model7_gen<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata)
 (a6_gen <- anova(model7_gen, model6_gen)) #is meanKin sig with FT1001_mean? no
 
 #compare meanKin and divlevel
-(ax <- anova(model6_gen,model10)) #no sig diff
+(ax <- anova(model10, model6_gen)) 
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model10: FH_Wt ~ divLevel + trt + FT1001_mean + (1 | stripNo)
+# model6_gen: FH_Wt ~ meanKin + trt + FT1001_mean + (1 | stripNo)
+# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
+# model10     6 -142.29 -117.89 77.145  -154.29                             
+# model6_gen  6 -143.20 -118.80 77.598  -155.20 0.9057      0  < 2.2e-16 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+#pred vs div
+model8_gen<-lmer(FH_Wt ~ trt+FT1001_mean+plotType+(1|stripNo), data=modeldata)
+model9_gen<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata)
+
+(a7_gen <- anova(model9_gen, model8_gen)) #plot type? no
 
 ####canopy area####
 #dataset for modeling
@@ -166,6 +206,14 @@ model11<-lmer(CanopyArea ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo)
 (a1 <- anova(model2,model1)) # is interaction sig? no
 (a2 <- anova(model3,model2)) # is PC5dist_mean covariate sig? no
 (a3 <- anova(model4, model3)) #is divLevel sig? no
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model4: CanopyArea ~ trt + (1 | stripNo) + (1 | GermRating)
+# model3: CanopyArea ~ divLevel + trt + (1 | stripNo) + (1 | GermRating)
+# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+# model4  5 2899.2 2919.7 -1444.6   2889.2                         
+# model3  6 2901.1 2925.8 -1444.6   2889.1 0.0241      1     0.8766
 (a4 <- anova(model5, model3)) #is trt sig? yes
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
@@ -221,6 +269,14 @@ model7_gen<-lmer(CanopyArea ~ trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), dat
 (a1_gen <- anova(model2_gen,model1_gen)) # is interaction sig? no
 (a2_gen <- anova(model3_gen,model2_gen)) # is PC5dist_mean covariate sig? no
 (a3_gen <- anova(model4_gen, model3_gen)) #is meanKin sig? no
+# refitting model(s) with ML (instead of REML)
+# Data: modeldata
+# Models:
+#   model4_gen: CanopyArea ~ trt + (1 | stripNo) + (1 | GermRating)
+# model3_gen: CanopyArea ~ meanKin + trt + (1 | stripNo) + (1 | GermRating)
+# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+# model4_gen  5 2899.2 2919.7 -1444.6   2889.2                         
+# model3_gen  6 2901.2 2925.8 -1444.6   2889.2 0.0034      1     0.9535
 (a4_gen <- anova(model5_gen, model3_gen)) #is trt sig? yes
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
@@ -248,6 +304,46 @@ model7_gen<-lmer(CanopyArea ~ trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), dat
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
+#####model expected genotype number in polyculture from monocultures - use instead of divLevel?####
+#code from Jesse 11/27/2018
+fieldD <- read.csv('~/Dropbox/jesse/Arabidopsis/BEF/FieldDataWithDiversityInfo.csv', as.is = T)
+isurvC <- tapply(fieldD$PlantNum_Initial[fieldD$plotType == 'mono' & fieldD$trt == 'C'], fieldD$lines1[fieldD$plotType == 'mono' & fieldD$trt == 'C'], mean, na.rm = T)
+
+isurvS <- tapply(fieldD$PlantNum_Initial[fieldD$plotType == 'mono' & fieldD$trt == 'S'], fieldD$lines1[fieldD$plotType == 'mono' & fieldD$trt == 'S'], mean, na.rm = T)
+
+
+#get expected biomass for each plot, accounting for different survival rates
+RandExpBiomPerPlant <- matrix(NA, nrow = nrow(fieldD), ncol = 100)
+
+
+for(i in 1:nrow(fieldD)){
+  for(j in 1:100){
+    
+    if(fieldD$plotType[i] != 'mono'){
+      
+      if(fieldD$trt[i] == 'C'){
+        expg <-     names(isurvC)[names(isurvC) %in% fieldD[i,paste0('lines', 1:fieldD$divLevel[i])]]
+        expg <- rep(expg, 20/fieldD$divLevel[i])
+        #make random comm.
+        newcomm <- sample(expg, fieldD$PlantNum_Initial[i], prob = isurvC[expg])
+        
+        RandExpBiomPerPlant[i,j] <- mean(biomC[newcomm],na.rm = T)
+      }
+      
+      if(fieldD$trt[i] == 'S'){
+        expg <-     names(isurvS)[names(isurvS) %in% fieldD[i,paste0('lines', 1:fieldD$divLevel[i])]]
+        expg <- rep(expg, 20/fieldD$divLevel[i])
+        #make random comm.
+        newcomm <- sample(expg, fieldD$PlantNum_Initial[i], prob = isurvS[expg])
+        
+        RandExpBiomPerPlant[i,j] <- mean(biomS[newcomm],na.rm = T)
+      }
+      
+    }
+  }
+}
+
+length(unique(newcomm)) #gives you expected number of genotypes in polyculture based on survival probability
 
 ########example using lme4.0#####
 exprs.LR<- function(trait,df,cov, family=gaussian){
