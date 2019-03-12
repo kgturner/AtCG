@@ -80,7 +80,7 @@ model13 <- lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | PlantNum_Init
 # Models:
 #   model5: FH_Wt ~ divLevel + (1 | stripNo)
 # model3: FH_Wt ~ divLevel + trt + (1 | stripNo)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)   
+#         Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)   
 # model5  4 -120.93 -104.67 64.466  -128.93                            
 # model3  5 -128.53 -108.20 69.267  -138.53 9.6021      1   0.001944 **
 #   ---
@@ -93,7 +93,7 @@ model13 <- lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | PlantNum_Init
 # Models:
 #   model4: FH_Wt ~ trt + (1 | stripNo)
 # model8: FH_Wt ~ trt + FT1001_mean + (1 | stripNo)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
+#         Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
 # model4  4 -130.31 -114.05 69.155  -138.31                             
 # model8  5 -143.96 -123.63 76.982  -153.96 15.654      1  7.603e-05 ***
 #   ---
@@ -135,7 +135,7 @@ model7_gen<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata)
 # Models:
 #   model4_gen: FH_Wt ~ trt + (1 | stripNo)
 # model3_gen: FH_Wt ~ meanKin + trt + (1 | stripNo)
-# Df     AIC     BIC logLik deviance Chisq Chi Df Pr(>Chisq)
+#             Df     AIC     BIC logLik deviance Chisq Chi Df Pr(>Chisq)
 # model4_gen  4 -130.31 -114.05 69.155  -138.31                        
 # model3_gen  5 -129.14 -108.81 69.572  -139.14 0.834      1     0.3611
 (a4_gen <- anova(model5_gen, model3_gen)) #is trt sig? yes
@@ -144,7 +144,7 @@ model7_gen<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata)
 # Models:
 #   model5_gen: FH_Wt ~ meanKin + (1 | stripNo)
 # model3_gen: FH_Wt ~ meanKin + trt + (1 | stripNo)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)   
+#             Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)   
 # model5_gen  4 -121.56 -105.30 64.781  -129.56                            
 # model3_gen  5 -129.14 -108.81 69.572  -139.14 9.5811      1   0.001966 **
 #   ---
@@ -155,7 +155,7 @@ model7_gen<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata)
 # Models:
 #   model3_gen: FH_Wt ~ meanKin + trt + (1 | stripNo)
 # model6_gen: FH_Wt ~ meanKin + trt + FT1001_mean + (1 | stripNo)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
+#             Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
 # model3_gen  5 -129.14 -108.81 69.572  -139.14                             
 # model6_gen  6 -143.20 -118.80 77.598  -155.20 16.052      1  6.162e-05 ***
 #   ---
@@ -212,7 +212,7 @@ model11<-lmer(CanopyArea ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo)
 # Models:
 #   model4: CanopyArea ~ trt + (1 | stripNo) + (1 | GermRating)
 # model3: CanopyArea ~ divLevel + trt + (1 | stripNo) + (1 | GermRating)
-# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+#         Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
 # model4  5 2899.2 2919.7 -1444.6   2889.2                         
 # model3  6 2901.1 2925.8 -1444.6   2889.1 0.0241      1     0.8766
 (a4 <- anova(model5, model3)) #is trt sig? yes
@@ -221,7 +221,7 @@ model11<-lmer(CanopyArea ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo)
 # Models:
 #   model5: CanopyArea ~ divLevel + (1 | stripNo) + (1 | GermRating)
 # model3: CanopyArea ~ divLevel + trt + (1 | stripNo) + (1 | GermRating)
-# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+#         Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
 # model5  5 3007.8 3028.4 -1498.9   2997.8                             
 # model3  6 2901.1 2925.8 -1444.6   2889.1 108.68      1  < 2.2e-16 ***
 #   ---
@@ -232,7 +232,7 @@ model11<-lmer(CanopyArea ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo)
 # Models:
 #   model6: CanopyArea ~ trt + (1 | stripNo)
 # model4: CanopyArea ~ trt + (1 | stripNo) + (1 | GermRating)
-# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+#         Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
 # model6  4 2911.6 2928.0 -1451.8   2903.6                             
 # model4  5 2899.2 2919.7 -1444.6   2889.2 14.403      1  0.0001476 ***
 #   ---
@@ -275,7 +275,7 @@ model7_gen<-lmer(CanopyArea ~ trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), dat
 # Models:
 #   model4_gen: CanopyArea ~ trt + (1 | stripNo) + (1 | GermRating)
 # model3_gen: CanopyArea ~ meanKin + trt + (1 | stripNo) + (1 | GermRating)
-# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+#             Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
 # model4_gen  5 2899.2 2919.7 -1444.6   2889.2                         
 # model3_gen  6 2901.2 2925.8 -1444.6   2889.2 0.0034      1     0.9535
 (a4_gen <- anova(model5_gen, model3_gen)) #is trt sig? yes
@@ -284,7 +284,7 @@ model7_gen<-lmer(CanopyArea ~ trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), dat
 # Models:
 #   model5_gen: CanopyArea ~ meanKin + (1 | stripNo) + (1 | GermRating)
 # model3_gen: CanopyArea ~ meanKin + trt + (1 | stripNo) + (1 | GermRating)
-# Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+#             Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
 # model5_gen  5 3007.8 3028.3 -1498.9   2997.8                             
 # model3_gen  6 2901.2 2925.8 -1444.6   2889.2 108.62      1  < 2.2e-16 ***
 #   ---
