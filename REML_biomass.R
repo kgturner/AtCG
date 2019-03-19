@@ -13,8 +13,9 @@ install.packages("lme4")
 library("lme4")
 
 #data
-fieldData <- read.csv("FieldDataWithDiversityInfo.csv")#using data file from Sept 2018 - updated one Oct 2018?
+fieldData <- read.csv("FieldDataWithDiversityInfo_18Mar19.csv")#using data from excel file Dec 2018
 lineData <- read.csv("chosenLines.csv")
+damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
 
 #column explanations
 #PCs5_distPSU - climate distance from PSU for that line
@@ -31,6 +32,7 @@ lineData <- read.csv("chosenLines.csv")
 # FT1001_mean - mean flowerint time from 1001 genomes paper
 # FT1001_var - variance
 # meanKin (how calculated?) - mean knship among plants in a plot (1001 genomes kinship matrix
+# treedist - different way to calculated relatedness
 # FT1001plast_mean - mean flowering time plasticity (reponse to 10 vs 16 C)
 # FT1001plast_var - variance in plasticity 
 # PlantNum_Initial - plants counted after 1 week in field (i.e. after transplant mortality)
@@ -40,95 +42,100 @@ lineData <- read.csv("chosenLines.csv")
 #dataset for modeling
 modeldata<-fieldData[!is.na(fieldData$FH_Wt),]
 #also remove non-NA plots that were trampled/dug up/washed out
-modeldata <- subset(modeldata, !(PotID %in% c(9, 100,110,111,118,138,213,266,306,320,371,406,410,414,450)))
+modeldata <- subset(modeldata, !(PotID %in% damaged_pot)) #removed cow/dog/flood damaged pots
+hist(modeldata$PlantNum_Initial, breaks = 20)
+modeldata <- subset(modeldata, PlantNum_Initial >12) #exclude plots with fewer than 12 plants (out of 20)? This does not change results
 #modeldata$testRand <- as.factor(rep("A", times=nrow(modeldata))) #for testing random effects...?
 summary(modeldata)
-subset(modeldata, GermRating =="NoGerm") #pot 74, no germ, yet PlantNum_Initial = 18, had canopy and FH_Wt
+# subset(modeldata, GermRating =="NoGerm") #pot 74, no germ, yet PlantNum_Initial = 18, had canopy and FH_Wt
+modeldata$perPlantFH_Wt <- modeldata$FH_Wt/modeldata$PlantNum_Initial
 
 #example full models
-#biomass ~ diversity level * stress trt *  plot average climate pca distance from PSU(PC5dist_mean) + density after transplant + (1| block)
-#biomass ~ plot average genetic distance (meanKin) * stress trt * climate pca(PC5dist_mean) + density after transplant + (1| block)
+#biomass/density after transplant ~ diversity level * stress trt +  plot average climate pca distance from PSU(PC5dist_mean) +  (1| block)
+#biomass/density after transplant ~ plot average genetic distance (meanKin) * stress trt * climate pca(PC5dist_mean) + (1| block)
 
 #div level models
-model1<-lmer(FH_Wt ~ divLevel*trt+PC5dist_mean+(1|stripNo), data=modeldata)
-model2<-lmer(FH_Wt ~ divLevel+trt+PC5dist_mean+(1|stripNo), data=modeldata)
-model3<-lmer(FH_Wt ~ divLevel+trt+(1|stripNo), data=modeldata)
-model4<-lmer(FH_Wt ~ trt+(1|stripNo), data=modeldata)
-model5<-lmer(FH_Wt ~ divLevel+(1|stripNo), data=modeldata)
-model6<-lmer(FH_Wt ~ trt+(1|stripNo)+(1|GermRating), data=modeldata)
-model7<-lmer(FH_Wt ~ trt+(1|stripNo)+(1|PlantNum_Initial), data=modeldata)
-model8<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata) ####
-model9<-lmer(FH_Wt ~ trt+FT1001plast_mean+(1|stripNo), data=modeldata)
-model10<-lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo), data=modeldata)##
-model11<-lmer(FH_Wt ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo), data=modeldata)
-model12 <- lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
-model13 <- lmer(FH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | PlantNum_Initial), data=modeldata)
-model14 <- lmer(FH_Wt ~ divLevel+trt+FT1001_mean+ (1 | GermRating), data=modeldata)
+model1<-lmer(perPlantFH_Wt ~ divLevel*trt+PC5dist_mean+(1|stripNo), data=modeldata)
+model2<-lmer(perPlantFH_Wt ~ divLevel+trt+PC5dist_mean+(1|stripNo), data=modeldata)
+model3<-lmer(perPlantFH_Wt ~ divLevel+trt+(1|stripNo), data=modeldata)
+model4<-lmer(perPlantFH_Wt ~ trt+(1|stripNo), data=modeldata)
+model5<-lmer(perPlantFH_Wt ~ divLevel+(1|stripNo), data=modeldata)
+model6<-lmer(perPlantFH_Wt ~ trt+(1|stripNo)+(1|GermRating), data=modeldata)
+# model7<-lmer(perPlantFH_Wt ~ trt+(1|stripNo)+(1|PlantNum_Initial), data=modeldata)
+model8<-lmer(perPlantFH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata) ####
+model9<-lmer(perPlantFH_Wt ~ trt+FT1001plast_mean+(1|stripNo), data=modeldata)
+model10<-lmer(perPlantFH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo), data=modeldata)##
+model11<-lmer(perPlantFH_Wt ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo), data=modeldata)
+model12 <- lmer(perPlantFH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+# model13 <- lmer(perPlantFH_Wt ~ divLevel+trt+FT1001_mean+(1|stripNo)+ (1 | PlantNum_Initial), data=modeldata)
+model14 <- lmer(perPlantFH_Wt ~ divLevel+trt+FT1001_mean+ (1 | GermRating), data=modeldata)
 
-model15 <- glm(FH_Wt ~ divLevel+trt+FT1001_mean, data=modeldata)
-model16 <- glm(FH_Wt ~ trt+FT1001_mean, data=modeldata)
+model15 <- glm(perPlantFH_Wt ~ divLevel+trt+FT1001_mean, data=modeldata)
+model16 <- glm(perPlantFH_Wt ~ trt+FT1001_mean, data=modeldata)
 
-
+#these results not currently in ms
 (a1 <- anova(model2,model1)) # is interaction sig? no
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
 # Models:
-#   model2: FH_Wt ~ divLevel + trt + PC5dist_mean + (1 | stripNo)
-# model1: FH_Wt ~ divLevel * trt + PC5dist_mean + (1 | stripNo)
+#   model2: perPlantFH_Wt ~ divLevel + trt + PC5dist_mean + (1 | stripNo)
+# model1: perPlantFH_Wt ~ divLevel * trt + PC5dist_mean + (1 | stripNo)
 # Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
-# model2  6 -117.07 -92.888 64.536  -129.07                         
-# model1  7 -115.40 -87.185 64.700  -129.40 0.3276      1     0.5671
-(a2 <- anova(model3,model2)) # is PC5dist_mean covariate sig? no
+# model2  6 -2290.1 -2266.5 1151.0  -2302.1                         
+# model1  7 -2288.2 -2260.7 1151.1  -2302.2 0.1058      1      0.745
+(a2 <- anova(model3,model2)) # is PC5dist_mean covariate sig? marginal!
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
 # Models:
-#   model3: FH_Wt ~ divLevel + trt + (1 | stripNo)
-# model2: FH_Wt ~ divLevel + trt + PC5dist_mean + (1 | stripNo)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
-# model3  5 -117.20 -97.049 63.601  -127.20                         
-# model2  6 -117.07 -92.888 64.536  -129.07 1.8694      1     0.1715
+#   model3: perPlantFH_Wt ~ divLevel + trt + (1 | stripNo)
+# model2: perPlantFH_Wt ~ divLevel + trt + PC5dist_mean + (1 | stripNo)
+# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)  
+# model3  5 -2289.2 -2269.6 1149.6  -2299.2                           
+# model2  6 -2290.1 -2266.5 1151.0  -2302.1 2.9102      1    0.08802 .
+# ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 (a3 <- anova(model4, model3)) #is divLevel sig? no
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
 # Models:
-#   model4: FH_Wt ~ trt + (1 | stripNo)
-# model3: FH_Wt ~ divLevel + trt + (1 | stripNo)
-# Df     AIC      BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
-# model4  4 -118.84 -102.723 63.423  -126.84                         
-# model3  5 -117.20  -97.049 63.601  -127.20 0.3571      1     0.5501
+#   model4: perPlantFH_Wt ~ trt + (1 | stripNo)
+# model3: perPlantFH_Wt ~ divLevel + trt + (1 | stripNo)
+# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
+# model4  4 -2290.7 -2275.0 1149.3  -2298.7                         
+# model3  5 -2289.2 -2269.6 1149.6  -2299.2 0.4915      1     0.4832
 (a4 <- anova(model5, model3)) #is trt sig? yes
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
 # Models:
-#   model5: FH_Wt ~ divLevel + (1 | stripNo)
-# model3: FH_Wt ~ divLevel + trt + (1 | stripNo)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
-# model5  4 -107.53 -91.405 57.764  -115.53                             
-# model3  5 -117.20 -97.049 63.601  -127.20 11.675      1  0.0006335 ***
+#   model5: perPlantFH_Wt ~ divLevel + (1 | stripNo)
+# model3: perPlantFH_Wt ~ divLevel + trt + (1 | stripNo)
+# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)   
+# model5  4 -2283.0 -2267.3 1145.5  -2291.0                            
+# model3  5 -2289.2 -2269.6 1149.6  -2299.2 8.2118      1   0.004162 **
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 (a5 <- anova(model4, model6)) #is germ rating sig? no ### see model comparisons including FT1001_mean
-(a6 <- anova(model4, model7)) #is initial plant number sig? no
+# (a6 <- anova(model4, model7)) #is initial plant number sig? no #do not include initial plant number if using perPlantFH_Wt
 (a7 <- anova(model4, model8)) #is FT1001 mean sig? yes!
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
 # Models:
-#   model4: FH_Wt ~ trt + (1 | stripNo)
-# model8: FH_Wt ~ trt + FT1001_mean + (1 | stripNo)
-#         Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
-# model4  4 -130.31 -114.05 69.155  -138.31
-# model8  5 -143.96 -123.63 76.982  -153.96 15.654      1  7.603e-05 ***
+#   model4: perPlantFH_Wt ~ trt + (1 | stripNo)
+# model8: perPlantFH_Wt ~ trt + FT1001_mean + (1 | stripNo)
+# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
+# model4  4 -2290.7 -2275.0 1149.3  -2298.7                             
+# model8  5 -2304.8 -2285.2 1157.4  -2314.8 16.097      1  6.017e-05 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 (a8 <- anova(model4, model9)) #is FT1001plasticity sig? yes
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
 # Models:
-#   model4: FH_Wt ~ trt + (1 | stripNo)
-# model9: FH_Wt ~ trt + FT1001plast_mean + (1 | stripNo)
+#   model4: perPlantFH_Wt ~ trt + (1 | stripNo)
+# model9: perPlantFH_Wt ~ trt + FT1001plast_mean + (1 | stripNo)
 # Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)  
-# model4  4 -130.31 -114.05 69.155  -138.31                           
-# model9  5 -134.82 -114.50 72.413  -144.82 6.5153      1     0.0107 *
+# model4  4 -2290.7 -2275.0 1149.3  -2298.7                           
+# model9  5 -2295.0 -2275.3 1152.5  -2305.0 6.2561      1    0.01238 *
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 (a9 <- anova(model8, model10)) #is div level sig with FT1001mean included? no
@@ -137,21 +144,23 @@ model16 <- glm(FH_Wt ~ trt+FT1001_mean, data=modeldata)
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
 # Models:
-#   model10: FH_Wt ~ divLevel + trt + FT1001_mean + (1 | stripNo)
-# model12: FH_Wt ~ divLevel + trt + FT1001_mean + (1 | stripNo) + (1 | GermRating)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
-# model10  6 -130.81 -106.62 71.403  -142.81                         
-# model12  7 -131.21 -102.99 72.602  -145.21 2.3986      1     0.1214
-(a12 <- anova(model10, model13)) #is plant number sig? no
+#   model10: perPlantFH_Wt ~ divLevel + trt + FT1001_mean + (1 | stripNo)
+# model12: perPlantFH_Wt ~ divLevel + trt + FT1001_mean + (1 | stripNo) + 
+#   model12:     (1 | GermRating)
+# Df     AIC     BIC logLik deviance Chisq Chi Df Pr(>Chisq)
+# model10  6 -2303.5 -2279.9 1157.7  -2315.5                        
+# model12  7 -2301.5 -2274.0 1157.7  -2315.5     0      1          1
+# (a12 <- anova(model10, model13)) #is plant number sig? no #don't include initial plant number if using perPlantFH_Wt
 (a13 <- anova(model14, model12)) #is block number sig? no (but currently in all the models....?)
 (a14 <- anova(model16, model15)) #is div level sig with no random effects? no
 # Analysis of Deviance Table
 # 
-# Model 1: FH_Wt ~ trt + FT1001_mean
-# Model 2: FH_Wt ~ divLevel + trt + FT1001_mean
-# Resid. Df Resid. Dev Df Deviance
-# 1       413     17.374            
-# 2       412     17.347  1 0.026485
+# Model 1: perPlantFH_Wt ~ trt + FT1001_mean
+# Model 2: perPlantFH_Wt ~ divLevel + trt + FT1001_mean
+# Resid. Df Resid. Dev Df   Deviance
+# 1       373   0.046714              
+# 2       372   0.046620  1 9.4072e-05
+
 
 
 
@@ -397,7 +406,8 @@ model7_gen<-lmer(CanopyArea ~ trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), dat
 
 #####model expected genotype number in polyculture from monocultures - use instead of divLevel?####
 #code from Jesse 11/27/2018
-fieldD <- read.csv('~/Dropbox/jesse/Arabidopsis/BEF/FieldDataWithDiversityInfo.csv', as.is = T)
+# fieldD <- read.csv('~/Dropbox/jesse/Arabidopsis/BEF/FieldDataWithDiversityInfo.csv', as.is = T)
+fieldD <- read.csv("FieldDataWithDiversityInfo.csv", as.is = T)
 isurvC <- tapply(fieldD$PlantNum_Initial[fieldD$plotType == 'mono' & fieldD$trt == 'C'], fieldD$lines1[fieldD$plotType == 'mono' & fieldD$trt == 'C'], mean, na.rm = T)
 
 isurvS <- tapply(fieldD$PlantNum_Initial[fieldD$plotType == 'mono' & fieldD$trt == 'S'], fieldD$lines1[fieldD$plotType == 'mono' & fieldD$trt == 'S'], mean, na.rm = T)

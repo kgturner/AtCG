@@ -129,3 +129,52 @@ pred20df_cs[11:20,]$plotType <- "div"
 pred20df_cs$plotNo <- c(21:30,81:90)
 
 write.table(pred20df_cs, "pred_div_20composition.txt", sep="\t")
+
+####calculate average overlap among plots in a diversity level####
+tengeno <- read.delim("pred_div_10composition.txt", header =T)
+tengenoM <- as.matrix(tengeno[,(1:10)])
+tengenoM_diff <- outer(1:nrow(tengenoM), 1:nrow(tengenoM), FUN=Vectorize(function(x,y)
+  sum(tengenoM[x,]!=tengenoM[y,])))
+# tengenoM_diff[lower.tri(tengenoM_diff)] <- 0
+tengenoM_diff
+sum(tengenoM_diff)
+# [1] 3682
+dim(tengenoM_diff)
+# [1] 20 20
+# sum(tengenoM_diff)/200
+sum(tengenoM_diff)/400
+# [1] 9.205
+10-sum(tengenoM_diff)/400
+# [1] 0.795
+
+
+twengeno <- read.delim("pred_div_20composition.txt", header =T)
+twengenoM <- as.matrix(twengeno[,(1:20)])
+twengenoM_diff <- outer(1:nrow(twengenoM), 1:nrow(twengenoM), FUN=Vectorize(function(x,y)
+  sum(twengenoM[x,]!=twengenoM[y,])))
+twengenoM_diff
+sum(twengenoM_diff)
+# [1] 7310
+dim(twengenoM_diff)
+# [1] 20 20
+sum(twengenoM_diff)/400
+# [1] 18.275
+20-sum(twengenoM_diff)/400
+# [1] 1.725
+
+####calc avg number of plots per genotype####
+twengeno_freq <- as.data.frame(table(unlist(twengenoM)))
+# sum(twengeno_freq$Freq)/60
+mean(twengeno_freq$Freq)
+# [1] 6.666667
+sd(twengeno_freq$Freq)
+# [1] 2.259944
+
+tengeno_freq <- as.data.frame(table(unlist(tengenoM)))
+mean(tengeno_freq$Freq)
+# [1] 3.508772
+sum(tengeno_freq$Freq)/60 #include 3 genotypes not included in 10-div level plots
+# [1] 3.333333
+tenfreq <- as.vector(c(tengeno_freq$Freq, 0,0,0))
+sd(tenfreq)
+# [1] 2.080309
