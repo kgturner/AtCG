@@ -17,6 +17,20 @@ fieldData <- read.csv("FieldDataWithDiversityInfo_18Mar19.csv")#using data from 
 lineData <- read.csv("chosenLines.csv")
 damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
 
+fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
+fec_freq <- as.data.frame(table(fecundityData$Pot.Number))
+colnames(fec_freq)[1] <- "PotID"
+survival_prelim <- merge(subset(fieldData, select=c(PotID, PlantNum_Initial,FH_Num)), fec_freq, all.x=T)
+colnames(survival_prelim)[4] <- "FecundityNum"
+survival_prelim[is.na(survival_prelim$FecundityNum),]$FecundityNum <- 0
+survival_prelim$SurvivalNum <- survival_prelim$FH_Num + survival_prelim$FecundityNum
+survival_prelim$Mortality <- survival_prelim$PlantNum_Initial - survival_prelim$SurvivalNum
+survival_prelim$Damaged_pot <- NA
+survival_prelim[survival_prelim$PotID %in% damaged_pot,]$Damaged_pot <- "damaged"
+summary(survival_prelim)
+subset(survival_prelim, Mortality<0)
+write.table(survival_prelim, "PrelimSurvivalData_20190321.txt", quote=F, sep="\t")
+
 #column explanations
 #PCs5_distPSU - climate distance from PSU for that line
 # 'tmean_4' is meanApril temp
@@ -32,27 +46,28 @@ damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209
 # FT1001_mean - mean flowerint time from 1001 genomes paper
 # FT1001_var - variance
 # meanKin (how calculated?) - mean knship among plants in a plot (1001 genomes kinship matrix
-# treedist - different way to calculated relatedness
+# treeDiv - different way to calculated relatedness
 # FT1001plast_mean - mean flowering time plasticity (reponse to 10 vs 16 C)
 # FT1001plast_var - variance in plasticity 
 # PlantNum_Initial - plants counted after 1 week in field (i.e. after transplant mortality)
 # GermRating - categorical assesment of germ 1 week (?) before transplant to field
+# Seed_Num_estimate - total silique # X silique length
 
-#####Biomass ~ diversity level models####
+####modeling dataset for biomass####
 #dataset for modeling
 modeldata<-fieldData[!is.na(fieldData$FH_Wt),]
 #also remove non-NA plots that were trampled/dug up/washed out
 modeldata <- subset(modeldata, !(PotID %in% damaged_pot)) #removed cow/dog/flood damaged pots
 hist(modeldata$PlantNum_Initial, breaks = 20)
-modeldata <- subset(modeldata, PlantNum_Initial >12) #exclude plots with fewer than 12 plants (out of 20)? This does not change results
+modeldata <- subset(modeldata, PlantNum_Initial >12) #exclude plots with fewer than 12 plants (out of 20)? Check if this changes results does not change results
 #modeldata$testRand <- as.factor(rep("A", times=nrow(modeldata))) #for testing random effects...?
 summary(modeldata)
 # subset(modeldata, GermRating =="NoGerm") #pot 74, no germ, yet PlantNum_Initial = 18, had canopy and FH_Wt
 modeldata$perPlantFH_Wt <- modeldata$FH_Wt/modeldata$PlantNum_Initial
 
-#example full models
+#####Biomass ~ diversity level models####
+#example full model
 #biomass/density after transplant ~ diversity level * stress trt +  plot average climate pca distance from PSU(PC5dist_mean) +  (1| block)
-#biomass/density after transplant ~ plot average genetic distance (meanKin) * stress trt * climate pca(PC5dist_mean) + (1| block)
 
 #div level models
 model1<-lmer(perPlantFH_Wt ~ divLevel*trt+PC5dist_mean+(1|stripNo), data=modeldata)
@@ -73,7 +88,10 @@ model14 <- lmer(perPlantFH_Wt ~ divLevel+trt+FT1001_mean+ (1 | GermRating), data
 model15 <- glm(perPlantFH_Wt ~ divLevel+trt+FT1001_mean, data=modeldata)
 model16 <- glm(perPlantFH_Wt ~ trt+FT1001_mean, data=modeldata)
 
+###
 #these results not currently in ms
+###
+
 (a1 <- anova(model2,model1)) # is interaction sig? no
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata
@@ -165,17 +183,9 @@ model16 <- glm(perPlantFH_Wt ~ trt+FT1001_mean, data=modeldata)
 
 
 ####biomass ~ genetic kinship models####
-#dataset for modeling
-modeldata<-fieldData[!is.na(fieldData$FH_Wt),]
-#also remove non-NA plots that were trampled/dug up/washed out
-modeldata <- subset(modeldata, !(PotID %in% c(9, 100,110,111,118,138,213,266,306,320,371,406,410,414,450)))
-#modeldata$testRand <- as.factor(rep("A", times=nrow(modeldata))) #for testing random effects...?
-summary(modeldata)
-subset(modeldata, GermRating =="NoGerm") #pot 74, no germ, yet PlantNum_Initial = 18, had canopy and FH_Wt
-
 #example full models
 #biomass ~ plot average genetic distance (meanKin) * stress trt * climate pca(PC5dist_mean) + density after transplant + (1| block)
-#include Germ rating
+#include Germ rating?
 
 model1_gen<-lmer(FH_Wt ~ meanKin*trt+PC5dist_mean+(1|GermRating)+(1|stripNo), data=modeldata)
 model2_gen<-lmer(FH_Wt ~ meanKin+trt+PC5dist_mean+(1|GermRating)+(1|stripNo), data=modeldata)
@@ -280,6 +290,58 @@ model10_gen<-lmer(FH_Wt ~ trt+FT1001_mean+(1|stripNo) + (1 | GermRating), data=m
 
 (a8_gen <- anova(model10_gen, model9_gen)) #plot type? no
 
+
+####biomass ~ tree div models####
+#example full models
+#biomass/density after transplant ~ plot genetic distance (treeDiv) * stress trt * climate pca(PC5dist_mean) +  (1| block)
+#include Germ rating?
+
+#tree distance models
+model1<-lmer(perPlantFH_Wt ~ treeDiv*trt+PC5dist_mean+(1|stripNo), data=modeldata)
+model2<-lmer(perPlantFH_Wt ~ treeDiv+trt+PC5dist_mean+(1|stripNo), data=modeldata)
+model3<-lmer(perPlantFH_Wt ~ treeDiv+trt+(1|stripNo), data=modeldata)
+model4<-lmer(perPlantFH_Wt ~ trt+(1|stripNo), data=modeldata)
+model5<-lmer(perPlantFH_Wt ~ treeDiv+(1|stripNo), data=modeldata)
+model6<-lmer(perPlantFH_Wt ~ trt+(1|stripNo)+(1|GermRating), data=modeldata)
+
+model8<-lmer(perPlantFH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata) ####
+model9<-lmer(perPlantFH_Wt ~ trt+FT1001plast_mean+(1|stripNo), data=modeldata)
+model10<-lmer(perPlantFH_Wt ~ treeDiv+trt+FT1001_mean+(1|stripNo), data=modeldata)##
+model11<-lmer(perPlantFH_Wt ~ treeDiv+trt+FT1001_mean+FT1001plast_mean+(1|stripNo), data=modeldata)
+model12 <- lmer(perPlantFH_Wt ~ treeDiv+trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
+
+model14 <- lmer(perPlantFH_Wt ~ treeDiv+trt+FT1001_mean+ (1 | GermRating), data=modeldata)
+
+model15 <- glm(perPlantFH_Wt ~ divLevel+trt+FT1001_mean, data=modeldata)
+model16 <- glm(perPlantFH_Wt ~ trt+FT1001_mean, data=modeldata)
+
+###
+#these results not currently in ms
+###
+
+(a1 <- anova(model2,model1)) # is interaction sig? 
+
+(a2 <- anova(model3,model2)) # is PC5dist_mean covariate sig? 
+
+(a3 <- anova(model4, model3)) #is divLevel sig? 
+
+(a4 <- anova(model5, model3)) #is trt sig? 
+
+(a5 <- anova(model4, model6)) #is germ rating sig? 
+
+(a7 <- anova(model4, model8)) #is FT1001 mean sig? 
+
+(a8 <- anova(model4, model9)) #is FT1001plasticity sig? 
+
+(a9 <- anova(model8, model10)) #is div level sig with FT1001mean included? 
+
+(a10 <- anova(model10, model11)) #is FT1001plast_mean sig if FT1001mean included? 
+
+(a11 <- anova(model10, model12)) #is germ rating sig? 
+
+(a13 <- anova(model14, model12)) #is block number sig? 
+(a14 <- anova(model16, model15)) #is div level sig with no random effects? 
+
 ####canopy area ~ div level models####
 #dataset for modeling
 modeldata<-fieldData[!is.na(fieldData$CanopyArea),]
@@ -357,7 +419,7 @@ model11<-lmer(CanopyArea ~ divLevel+trt+FT1001_mean+FT1001plast_mean+(1|stripNo)
 
 
 
-#genetic distance models
+####canopy area ~ genetic distance models####
 model1_gen<-lmer(CanopyArea ~ meanKin*trt+PC5dist_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
 model2_gen<-lmer(CanopyArea ~ meanKin+trt+PC5dist_mean+(1|stripNo)+ (1 | GermRating), data=modeldata)
 model3_gen<-lmer(CanopyArea ~ meanKin+trt+(1|stripNo)+ (1 | GermRating), data=modeldata)
@@ -403,6 +465,18 @@ model7_gen<-lmer(CanopyArea ~ trt+FT1001_mean+(1|stripNo)+ (1 | GermRating), dat
 # model3      6 2901.1 2925.8 -1444.6   2889.1 0.0207      0  < 2.2e-16 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+
+####canopy area ~ tree div models####
+####fecundity ~ div level models####
+fec_freq <- as.data.frame(table(fecundityData$Pot.Number)) #Var1 = Pot ID, Freq = # of plants harvested early w/ fruit
+
+#example full model
+#(sum of seed number estimate by plot)/(fecundity frequncy + FH_Num)
+#(plant num initial - fecundity frequncy - FH_Num) = mortality
+#(fecundity frequncy + FH_Num) = survival
+
 
 #####model expected genotype number in polyculture from monocultures - use instead of divLevel?####
 #code from Jesse 11/27/2018
