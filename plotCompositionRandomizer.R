@@ -162,6 +162,23 @@ sum(twengenoM_diff)/400
 20-sum(twengenoM_diff)/400
 # [1] 1.725
 
+twogeno <- read.delim("pred_div_02composition.txt", header =T)
+twogenoM <- as.matrix(twogeno[,(2:3)])
+twogenoM_diff <- outer(1:nrow(twogenoM), 1:nrow(twogenoM), FUN=Vectorize(function(x,y)
+  sum(twogenoM[x,]!=twogenoM[y,])))
+# twogenoM_diff[lower.tri(twogenoM_diff)] <- 0
+twogenoM_diff
+sum(twogenoM_diff)
+# [1] 750
+dim(twogenoM_diff)
+# [1] 20 20
+# sum(twogenoM_diff)/200
+sum(twogenoM_diff)/400
+# [1] 1.875
+2-sum(twogenoM_diff)/400
+# [1] 0.125
+
+
 ####calc avg number of plots per genotype####
 twengeno_freq <- as.data.frame(table(unlist(twengenoM)))
 # sum(twengeno_freq$Freq)/60
@@ -178,3 +195,12 @@ sum(tengeno_freq$Freq)/60 #include 3 genotypes not included in 10-div level plot
 tenfreq <- as.vector(c(tengeno_freq$Freq, 0,0,0))
 sd(tenfreq)
 # [1] 2.080309
+
+twogeno_freq <- as.data.frame(table(unlist(twogenoM)))
+mean(twogeno_freq$Freq)
+# [1] 1.142857
+sum(twogeno_freq$Freq)/60 #include 3 genotypes not included in 10-div level plots
+# [1] 0.6666667
+twofreq <- as.vector(c(twogeno_freq$Freq, 0,0,0))
+sd(twofreq)
+# [1] 0.4619213
