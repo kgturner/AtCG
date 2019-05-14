@@ -17,6 +17,7 @@ fieldData <- read.csv("FieldDataWithDiversityInfo_18Mar19.csv")#using data from 
 lineData <- read.csv("chosenLines.csv")
 damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
 
+#this needs rethinking
 fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
 fec_freq <- as.data.frame(table(fecundityData$Pot.Number))
 colnames(fec_freq)[1] <- "PotID"
@@ -59,15 +60,19 @@ modeldata<-fieldData[!is.na(fieldData$FH_Wt),]
 #also remove non-NA plots that were trampled/dug up/washed out
 modeldata <- subset(modeldata, !(PotID %in% damaged_pot)) #removed cow/dog/flood damaged pots
 hist(modeldata$PlantNum_Initial, breaks = 20)
-modeldata <- subset(modeldata, PlantNum_Initial >12) #exclude plots with fewer than 12 plants (out of 20)? Check if this changes results does not change results
+
+# modeldata <- subset(modeldata, PlantNum_Initial >12) #exclude plots with fewer than 12 plants (out of 20)? Check if this changes results does not change results
 #modeldata$testRand <- as.factor(rep("A", times=nrow(modeldata))) #for testing random effects...?
 summary(modeldata)
 # subset(modeldata, GermRating =="NoGerm") #pot 74, no germ, yet PlantNum_Initial = 18, had canopy and FH_Wt
-modeldata$perPlantFH_Wt <- modeldata$FH_Wt/modeldata$PlantNum_Initial
+# modeldata$perPlantFH_Wt <- modeldata$FH_Wt/modeldata$PlantNum_Initial
 
 #####Biomass ~ diversity level models####
 #example full model
-#biomass/density after transplant ~ diversity level * stress trt +  plot average climate pca distance from PSU(PC5dist_mean) +  (1| block)
+#biomass/density after transplant ~ 
+#     diversity level * stress trt +  
+#     plot average climate pca distance from PSU(PC5dist_mean) + FT1001_mean + SLApred
+#     (1|MaxPlantNum) + (1| block)
 
 #div level models
 model1<-lmer(perPlantFH_Wt ~ divLevel*trt+PC5dist_mean+(1|stripNo), data=modeldata)
