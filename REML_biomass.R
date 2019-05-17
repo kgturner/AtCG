@@ -13,24 +13,25 @@ install.packages("lme4")
 library("lme4")
 
 #data
-fieldData <- read.csv("FieldDataWithDiversityInfo_18Mar19.csv")#using data from excel file Dec 2018
+fieldData <- read.csv("FieldDataWithDiversityInfo_14May19.csv")#using data from excel file 3_21_19
 lineData <- read.csv("chosenLines.csv")
 damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
+prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt") #census data based on photos from 6/12/2018
 
 #this needs rethinking
-fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
-fec_freq <- as.data.frame(table(fecundityData$Pot.Number))
-colnames(fec_freq)[1] <- "PotID"
-survival_prelim <- merge(subset(fieldData, select=c(PotID, PlantNum_Initial,FH_Num)), fec_freq, all.x=T)
-colnames(survival_prelim)[4] <- "FecundityNum"
-survival_prelim[is.na(survival_prelim$FecundityNum),]$FecundityNum <- 0
-survival_prelim$SurvivalNum <- survival_prelim$FH_Num + survival_prelim$FecundityNum
-survival_prelim$Mortality <- survival_prelim$PlantNum_Initial - survival_prelim$SurvivalNum
-survival_prelim$Damaged_pot <- NA
-survival_prelim[survival_prelim$PotID %in% damaged_pot,]$Damaged_pot <- "damaged"
-summary(survival_prelim)
-subset(survival_prelim, Mortality<0)
-write.table(survival_prelim, "PrelimSurvivalData_20190321.txt", quote=F, sep="\t")
+# fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
+# fec_freq <- as.data.frame(table(fecundityData$Pot.Number))
+# colnames(fec_freq)[1] <- "PotID"
+# survival_prelim <- merge(subset(fieldData, select=c(PotID, PlantNum_Initial,FH_Num)), fec_freq, all.x=T)
+# colnames(survival_prelim)[4] <- "FecundityNum"
+# survival_prelim[is.na(survival_prelim$FecundityNum),]$FecundityNum <- 0
+# survival_prelim$SurvivalNum <- survival_prelim$FH_Num + survival_prelim$FecundityNum
+# survival_prelim$Mortality <- survival_prelim$PlantNum_Initial - survival_prelim$SurvivalNum
+# survival_prelim$Damaged_pot <- NA
+# survival_prelim[survival_prelim$PotID %in% damaged_pot,]$Damaged_pot <- "damaged"
+# summary(survival_prelim)
+# subset(survival_prelim, Mortality<0)
+# write.table(survival_prelim, "PrelimSurvivalData_20190321.txt", quote=F, sep="\t")
 
 #column explanations
 #PCs5_distPSU - climate distance from PSU for that line
