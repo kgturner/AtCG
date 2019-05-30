@@ -18,21 +18,6 @@ lineData <- read.csv("chosenLines.csv")
 damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
 prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt") #census data based on photos from 6/12/2018
 
-#this needs rethinking
-# fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
-# fec_freq <- as.data.frame(table(fecundityData$Pot.Number))
-# colnames(fec_freq)[1] <- "PotID"
-# survival_prelim <- merge(subset(fieldData, select=c(PotID, PlantNum_Initial,FH_Num)), fec_freq, all.x=T)
-# colnames(survival_prelim)[4] <- "FecundityNum"
-# survival_prelim[is.na(survival_prelim$FecundityNum),]$FecundityNum <- 0
-# survival_prelim$SurvivalNum <- survival_prelim$FH_Num + survival_prelim$FecundityNum
-# survival_prelim$Mortality <- survival_prelim$PlantNum_Initial - survival_prelim$SurvivalNum
-# survival_prelim$Damaged_pot <- NA
-# survival_prelim[survival_prelim$PotID %in% damaged_pot,]$Damaged_pot <- "damaged"
-# summary(survival_prelim)
-# subset(survival_prelim, Mortality<0)
-# write.table(survival_prelim, "PrelimSurvivalData_20190321.txt", quote=F, sep="\t")
-
 #column explanations
 #PCs5_distPSU - climate distance from PSU for that line
 # 'tmean_4' is meanApril temp
@@ -54,13 +39,38 @@ prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt") #census data based o
 # PlantNum_Initial - plants counted after 1 week in field (i.e. after transplant mortality)
 # GermRating - categorical assesment of germ 1 week (?) before transplant to field
 # Seed_Num_estimate - total silique # X silique length
+# X1-X27 - kinship eigenvectors (snp pca). THey run sequentially from PC1-PC9, with 3 columns each, which are in order the 0.1, 0.5, and 0.9 quantile. 
+
+
+# this needs rethinking
+# # fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
+# # fec_freq <- as.data.frame(table(fecundityData$Pot.Number))
+# # colnames(fec_freq)[1] <- "PotID"
+# # survival_prelim <- merge(subset(fieldData, select=c(PotID, PlantNum_Initial,FH_Num)), fec_freq, all.x=T)
+# # colnames(survival_prelim)[4] <- "FecundityNum"
+# # survival_prelim[is.na(survival_prelim$FecundityNum),]$FecundityNum <- 0
+# # survival_prelim$SurvivalNum <- survival_prelim$FH_Num + survival_prelim$FecundityNum
+# # survival_prelim$Mortality <- survival_prelim$PlantNum_Initial - survival_prelim$SurvivalNum
+# # survival_prelim$Damaged_pot <- NA
+# # survival_prelim[survival_prelim$PotID %in% damaged_pot,]$Damaged_pot <- "damaged"
+# # summary(survival_prelim)
+# # subset(survival_prelim, Mortality<0)
+prelimSurv <- subset(prelimSurv, select = c(1:3,7:10))
+prelimSurv$totMinusGerm <- prelimSurv$X6_12_total_num - prelimSurv$X6_12_late_germ_num
+prelimSurv$MaxPlantNum <- pmax(prelimSurv$PlantNum_Initial, prelimSurv$totMinusGerm)
+# write.table(survival_prelim, "PrelimSurvivalData_20190321.txt", quote=F, sep="\t")
+
+####merging for modeldataset####
+#merge plant num data
+modeldata <- merge.data.frame(fieldData, prelimSurv, by="PotID")
+#also remove non-NA plots that were trampled/dug up/washed out
+modeldata <- subset(modeldata, !(PotID %in% damaged_pot)) #removed cow/dog/flood damaged pots
+hist(modeldata$MaxPlantNum, breaks = 20)
 
 ####modeling dataset for biomass####
 #dataset for modeling
 modeldata<-fieldData[!is.na(fieldData$FH_Wt),]
-#also remove non-NA plots that were trampled/dug up/washed out
-modeldata <- subset(modeldata, !(PotID %in% damaged_pot)) #removed cow/dog/flood damaged pots
-hist(modeldata$PlantNum_Initial, breaks = 20)
+
 
 # modeldata <- subset(modeldata, PlantNum_Initial >12) #exclude plots with fewer than 12 plants (out of 20)? Check if this changes results does not change results
 #modeldata$testRand <- as.factor(rep("A", times=nrow(modeldata))) #for testing random effects...?
