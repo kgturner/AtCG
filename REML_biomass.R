@@ -17,6 +17,7 @@ fieldData <- read.csv("FieldDataWithDiversityInfo_14May19.csv")#using data from 
 lineData <- read.csv("chosenLines.csv")
 damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
 prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt") #census data based on photos from 6/12/2018
+SLAbv <- read.csv("logSLA_breedingvalues_6June2019.csv")
 
 #column explanations
 #PCs5_distPSU - climate distance from PSU for that line
@@ -66,6 +67,13 @@ modeldata <- merge.data.frame(fieldData, prelimSurv, by="PotID")
 #also remove non-NA plots that were trampled/dug up/washed out
 modeldata <- subset(modeldata, !(PotID %in% damaged_pot)) #removed cow/dog/flood damaged pots
 hist(modeldata$MaxPlantNum, breaks = 20)
+#add SLA breeding values (modeldata cols trt and lines1)
+library("tidyr")
+SLAbv <- SLAbv %>% gather(trtC, trtS, key = "trt", value = "slabv")
+SLAbv[SLAbv$trt %in% "trtC",]$trt <- "c"
+SLAbv[SLAbv$trt %in% "trtS",]$trt <- "S"
+
+modeldata <- merge.data.frame(modeldata, SLAbv, by)
 
 ####modeling dataset for biomass####
 #dataset for modeling
