@@ -13,11 +13,11 @@ install.packages("lme4")
 library("lme4")
 
 #data
-fieldData <- read.csv("FieldDataWithDiversityInfo_14May19.csv")#using data from excel file 3_21_19
-lineData <- read.csv("chosenLines.csv")
+fieldData <- read.csv("FieldDataWithDiversityInfo_14May19.csv", na.strings=c(""," ","NA"))#using data from excel file 3_21_19
+lineData <- read.csv("chosenLines.csv", na.strings=c(""," ","NA"))
 damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
-prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt") #census data based on photos from 6/12/2018
-SLAbv <- read.csv("logSLA_breedingvalues_6June2019.csv")
+prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt", na.strings=c(""," ","NA")) #census data based on photos from 6/12/2018
+SLAbv <- read.csv("logSLA_breedingvalues_6June2019.csv", na.strings=c(""," ","NA"))
 
 #column explanations
 #PCs5_distPSU - climate distance from PSU for that line
@@ -64,14 +64,40 @@ prelimSurv$MaxPlantNum <- pmax(prelimSurv$PlantNum_Initial, prelimSurv$totMinusG
 ####merging for modeldataset####
 #merge plant num data
 modeldata <- merge.data.frame(fieldData, prelimSurv, by="PotID")
+#480 obvs of 116 var
 #also remove non-NA plots that were trampled/dug up/washed out
-modeldata <- subset(modeldata, !(PotID %in% damaged_pot)) #removed cow/dog/flood damaged pots
+modeldata <- subset(modeldata, !(PotID %in% damaged_pot), select = c(1,3,5:31,36:37, 53:54, 64,66:68, 80,81,109:116)) #removed cow/dog/flood damaged pots
+#430 obvs of 47 var
+
 hist(modeldata$MaxPlantNum, breaks = 20)
 #add SLA breeding values (modeldata cols trt and lines1)
 library("tidyr")
 SLAbv <- SLAbv %>% gather(trtC, trtS, key = "trt", value = "slabv")
-SLAbv[SLAbv$trt %in% "trtC",]$trt <- "c"
+SLAbv[SLAbv$trt %in% "trtC",]$trt <- "C"
 SLAbv[SLAbv$trt %in% "trtS",]$trt <- "S"
+SLAbv$trt <- as.factor(SLAbv$trt)
+
+mono <- subset(modeldata, plotType %in% "mono")
+mono <- merge.data.frame(mono, SLAbv, by.x=c("lines1", "trt"), by.y=c("lines","trt"), all = TRUE)
+#319 obvs of 48 var
+
+divC <- subset(modeldata, plotType %in% "div" & trt %in% "C")
+#28 obvs of 47 var
+#sum of SLA values for lines, divided by divLevel
+divC$SLA1 <- NULL
+
+
+
+divC[divC$lines1 %in% SLAbv$lines & SLAbv$trt %in% "C",]$SLA1 <- SLAbv$slabv
+
+
+divC[,7:25]
+
+
+divS <- subset(modeldata, plotType %in% "div" & trt %in% "S")
+
+
+
 
 modeldata <- merge.data.frame(modeldata, SLAbv, by)
 
