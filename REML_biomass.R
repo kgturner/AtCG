@@ -11,6 +11,7 @@ install.packages("minqa", "RcppEigen")
 install.packages("lme4")
 
 library("lme4")
+'%!in%' <- function(x,y)!('%in%'(x,y))
 
 #data
 fieldData <- read.csv("FieldDataWithDiversityInfo_14May19.csv", na.strings=c(""," ","NA"))#using data from excel file 3_21_19
@@ -68,39 +69,51 @@ modeldata <- merge.data.frame(fieldData, prelimSurv, by="PotID")
 #also remove non-NA plots that were trampled/dug up/washed out
 modeldata <- subset(modeldata, !(PotID %in% damaged_pot), select = c(1,3,5:31,36:37, 53:54, 64,66:68, 80,81,109:116)) #removed cow/dog/flood damaged pots
 #430 obvs of 47 var
+# hist(modeldata$MaxPlantNum, breaks = 20)
 
-hist(modeldata$MaxPlantNum, breaks = 20)
-#add SLA breeding values (modeldata cols trt and lines1)
+#add SLA breeding values to model data set
+#for control
+md_c <- subset(modeldata, trt %in% "C" & plotType %!in% "mono", select = c(1, 3:25))
+md_c3 <- data.frame(PotID=md_c$PotID)
+md_c3$temp <- NA
+for(i in seq_along(md_c)[5:24]) {
+  md_c3$temp <- SLAbv[match(md_c[,i], SLAbv$lines),2] #col 2 is trtC
+  names(md_c3)[names(md_c3)=="temp"] <- paste0("SLAcol",i)
+}
+md_c3$mean_SLAbv <- rowMeans(md_c3[,2:21], na.rm=TRUE)
+
+#for stress
+md_s <- subset(modeldata, trt %in% "S" & plotType %!in% "mono", select = c(1, 3:25))
+md_s3 <- data.frame(PotID=md_s$PotID)
+md_s3$temp <- NA
+for(i in seq_along(md_s)[5:24]) {
+  md_s3$temp <- SLAbv[match(md_s[,i], SLAbv$lines),3] #col 2 is trtC
+  names(md_s3)[names(md_s3)=="temp"] <- paste0("SLAcol",i)
+}
+md_s3$mean_SLAbv <- rowMeans(md_s3[,2:21], na.rm=TRUE)
+
+#for mono
 library("tidyr")
-SLAbv <- SLAbv %>% gather(trtC, trtS, key = "trt", value = "slabv")
-SLAbv[SLAbv$trt %in% "trtC",]$trt <- "C"
-SLAbv[SLAbv$trt %in% "trtS",]$trt <- "S"
-SLAbv$trt <- as.factor(SLAbv$trt)
-
+SLAbv2 <- SLAbv %>% gather(trtC, trtS, key = "trt", value = "mean_SLAbv")
+SLAbv2[SLAbv2$trt %in% "trtC",]$trt <- "C"
+SLAbv2[SLAbv2$trt %in% "trtS",]$trt <- "S"
+SLAbv2$trt <- as.factor(SLAbv2$trt)
 mono <- subset(modeldata, plotType %in% "mono")
-mono <- merge.data.frame(mono, SLAbv, by.x=c("lines1", "trt"), by.y=c("lines","trt"), all = TRUE)
+mono <- merge.data.frame(mono, SLAbv2, by.x=c("lines1", "trt"), by.y=c("lines","trt"), all = TRUE)
 #319 obvs of 48 var
 
-divC <- subset(modeldata, plotType %in% "div" & trt %in% "C")
-#28 obvs of 47 var
-#sum of SLA values for lines, divided by divLevel
-divC$SLA1 <- NULL
+#merge back!
+modeldata <- merge.data.frame(modeldata, mono, all.x=TRUE)
+#430 obs of 48 var
+# modeldata[11:20,c(1:6,48)] #to check
 
-
-
-divC[divC$lines1 %in% SLAbv$lines & SLAbv$trt %in% "C",]$SLA1 <- SLAbv$slabv
-
-
-divC[,7:25]
-
-
-divS <- subset(modeldata, plotType %in% "div" & trt %in% "S")
+modeldata[modeldata$PotID %in% md_c3$PotID,]$mean_SLAbv <- md_c3$mean_SLAbv
+modeldata[modeldata$PotID %in% md_s3$PotID,]$mean_SLAbv <- md_s3$mean_SLAbv
 
 
 
 
-modeldata <- merge.data.frame(modeldata, SLAbv, by)
-
+###################################################
 ####modeling dataset for biomass####
 #dataset for modeling
 modeldata<-fieldData[!is.na(fieldData$FH_Wt),]
