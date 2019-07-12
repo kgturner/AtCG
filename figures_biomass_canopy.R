@@ -5,17 +5,21 @@ library(ggplot2)
 library(plyr)
 
 #data
-fieldData <- read.csv("FieldDataWithDiversityInfo.csv")
+# fieldData <- read.csv("FieldDataWithDiversityInfo.csv")
 # lineData <- read.csv("chosenLines.csv")
+modeldata <- read.delim("modeldata_20190711.txt", na.strings=c(""," ","NA"))
 
-#dataset for graphing
-biomass<-fieldData[!is.na(fieldData$FH_Wt),]
-canopy <- fieldData[!is.na(fieldData$CanopyArea),]
+modeldata_m<-modeldata[!is.na(modeldata$FH_Wt),]
+modeldata_m$perPlantFH_Wt <- modeldata_m$FH_Wt/modeldata_m$MaxPlantNum
+
+modeldata_c<-modeldata[!is.na(modeldata$CanopyArea),]
+modeldata_c$perPlantCanopy <- modeldata_c$CanopyArea/modeldata_c$MaxPlantNum
+
 
 ####scatterplots####
 #biomass
 
-pbiomass_div <- ggplot(biomass,aes(divLevel,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+pbiomass_div <- ggplot(modeldata_m,aes(divLevel,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
   xlab("plot diversity")+ylab("plot biomass at harvest")+ 
@@ -25,28 +29,38 @@ pbiomass_div <- ggplot(biomass,aes(divLevel,FH_Wt, color=trt))+geom_point(aes(sh
   # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
 pbiomass_div
 
-pbiomass_kin <- ggplot(biomass,aes(meanKin,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+pPerPlantMass_div <- ggplot(modeldata_m,aes(divLevel,perPlantFH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("plot mean kinship")+ylab("plot biomass at harvest")+ 
-  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() +
-  theme(legend.position="none")
-# ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
-pbiomass_kin
-
-pbiomass_ft <- ggplot(biomass,aes(FT1001_mean,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
-  geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
-  #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("FT1001_mean")+ylab("plot biomass at harvest")+ 
+  xlab("plot diversity")+ylab("per plant biomass at harvest")+ 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
   theme_bw() +
   theme(legend.position=c(.9,.9))
-pbiomass_ft
+# ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
+pPerPlantMass_div
+
+# pbiomass_kin <- ggplot(biomass,aes(meanKin,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("plot mean kinship")+ylab("plot biomass at harvest")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() +
+#   theme(legend.position="none")
+# # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
+# pbiomass_kin
+# 
+# pbiomass_ft <- ggplot(biomass,aes(FT1001_mean,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("FT1001_mean")+ylab("plot biomass at harvest")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() +
+#   theme(legend.position=c(.9,.9))
+# pbiomass_ft
 
 
 #canopy
-pcanopy_div <- ggplot(canopy,aes(divLevel,CanopyArea, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+pcanopy_div <- ggplot(modeldata_c,aes(divLevel,CanopyArea, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
   xlab("plot diversity")+ylab("plot canopy area")+ 
@@ -56,24 +70,34 @@ pcanopy_div <- ggplot(canopy,aes(divLevel,CanopyArea, color=trt))+geom_point(aes
 # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
 pcanopy_div
 
-pcanopy_kin <- ggplot(canopy,aes(meanKin,CanopyArea, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+pPerPlantcanopy_div <- ggplot(modeldata_c,aes(divLevel,perPlantCanopy, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("plot mean kinship")+ylab("plot canopy area")+ 
+  xlab("plot diversity")+ylab("per plant canopy area")+ 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
   theme_bw() +
-theme(legend.position="none")
+  theme(legend.position="none")
 # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
-pcanopy_kin
+pPerPlantcanopy_div
 
-pcanopy_ft <- ggplot(canopy,aes(FT1001_mean,CanopyArea, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
-  geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
-  #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("FT1001_mean")+ylab("plot canopy area")+ 
-  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() +
-  theme(legend.position=c(.9,.9))
-pcanopy_ft
+# pcanopy_kin <- ggplot(canopy,aes(meanKin,CanopyArea, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("plot mean kinship")+ylab("plot canopy area")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() +
+# theme(legend.position="none")
+# # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
+# pcanopy_kin
+# 
+# pcanopy_ft <- ggplot(canopy,aes(FT1001_mean,CanopyArea, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("FT1001_mean")+ylab("plot canopy area")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() +
+#   theme(legend.position=c(.9,.9))
+# pcanopy_ft
 
 #avg by div level
 #for plots of div level means
