@@ -739,56 +739,48 @@ model7_tr<-lmer(perPlantCanopy ~ trt+(1|stripNo), data=modeldata_c)
 
 
 
-####fecundity ~ div level models####
-fec_freq <- as.data.frame(table(fecundityData$Pot.Number)) #Var1 = Pot ID, Freq = # of plants harvested early w/ fruit
 
-#example full model
-#(sum of seed number estimate by plot)/(fecundity frequncy + FH_Num)
-#(plant num initial - fecundity frequncy - FH_Num) = mortality
-#(fecundity frequncy + FH_Num) = survival
-
-
-#####model expected genotype number in polyculture from monocultures - use instead of divLevel?####
-#code from Jesse 11/27/2018
-# fieldD <- read.csv('~/Dropbox/jesse/Arabidopsis/BEF/FieldDataWithDiversityInfo.csv', as.is = T)
-fieldD <- read.csv("FieldDataWithDiversityInfo.csv", as.is = T)
-isurvC <- tapply(fieldD$PlantNum_Initial[fieldD$plotType == 'mono' & fieldD$trt == 'C'], fieldD$lines1[fieldD$plotType == 'mono' & fieldD$trt == 'C'], mean, na.rm = T)
-
-isurvS <- tapply(fieldD$PlantNum_Initial[fieldD$plotType == 'mono' & fieldD$trt == 'S'], fieldD$lines1[fieldD$plotType == 'mono' & fieldD$trt == 'S'], mean, na.rm = T)
-
-
-#get expected biomass for each plot, accounting for different survival rates
-RandExpBiomPerPlant <- matrix(NA, nrow = nrow(fieldD), ncol = 100)
-
-
-for(i in 1:nrow(fieldD)){
-  for(j in 1:100){
-    
-    if(fieldD$plotType[i] != 'mono'){
-      
-      if(fieldD$trt[i] == 'C'){
-        expg <-     names(isurvC)[names(isurvC) %in% fieldD[i,paste0('lines', 1:fieldD$divLevel[i])]]
-        expg <- rep(expg, 20/fieldD$divLevel[i])
-        #make random comm.
-        newcomm <- sample(expg, fieldD$PlantNum_Initial[i], prob = isurvC[expg])
-        
-        RandExpBiomPerPlant[i,j] <- mean(biomC[newcomm],na.rm = T)
-      }
-      
-      if(fieldD$trt[i] == 'S'){
-        expg <-     names(isurvS)[names(isurvS) %in% fieldD[i,paste0('lines', 1:fieldD$divLevel[i])]]
-        expg <- rep(expg, 20/fieldD$divLevel[i])
-        #make random comm.
-        newcomm <- sample(expg, fieldD$PlantNum_Initial[i], prob = isurvS[expg])
-        
-        RandExpBiomPerPlant[i,j] <- mean(biomS[newcomm],na.rm = T)
-      }
-      
-    }
-  }
-}
-
-length(unique(newcomm)) #gives you expected number of genotypes in polyculture based on survival probability
+# #####model expected genotype number in polyculture from monocultures - use instead of divLevel?####
+# #code from Jesse 11/27/2018
+# # fieldD <- read.csv('~/Dropbox/jesse/Arabidopsis/BEF/FieldDataWithDiversityInfo.csv', as.is = T)
+# fieldD <- read.csv("FieldDataWithDiversityInfo.csv", as.is = T)
+# isurvC <- tapply(fieldD$PlantNum_Initial[fieldD$plotType == 'mono' & fieldD$trt == 'C'], fieldD$lines1[fieldD$plotType == 'mono' & fieldD$trt == 'C'], mean, na.rm = T)
+# 
+# isurvS <- tapply(fieldD$PlantNum_Initial[fieldD$plotType == 'mono' & fieldD$trt == 'S'], fieldD$lines1[fieldD$plotType == 'mono' & fieldD$trt == 'S'], mean, na.rm = T)
+# 
+# 
+# #get expected biomass for each plot, accounting for different survival rates
+# RandExpBiomPerPlant <- matrix(NA, nrow = nrow(fieldD), ncol = 100)
+# 
+# 
+# for(i in 1:nrow(fieldD)){
+#   for(j in 1:100){
+#     
+#     if(fieldD$plotType[i] != 'mono'){
+#       
+#       if(fieldD$trt[i] == 'C'){
+#         expg <-     names(isurvC)[names(isurvC) %in% fieldD[i,paste0('lines', 1:fieldD$divLevel[i])]]
+#         expg <- rep(expg, 20/fieldD$divLevel[i])
+#         #make random comm.
+#         newcomm <- sample(expg, fieldD$PlantNum_Initial[i], prob = isurvC[expg])
+#         
+#         RandExpBiomPerPlant[i,j] <- mean(biomC[newcomm],na.rm = T)
+#       }
+#       
+#       if(fieldD$trt[i] == 'S'){
+#         expg <-     names(isurvS)[names(isurvS) %in% fieldD[i,paste0('lines', 1:fieldD$divLevel[i])]]
+#         expg <- rep(expg, 20/fieldD$divLevel[i])
+#         #make random comm.
+#         newcomm <- sample(expg, fieldD$PlantNum_Initial[i], prob = isurvS[expg])
+#         
+#         RandExpBiomPerPlant[i,j] <- mean(biomS[newcomm],na.rm = T)
+#       }
+#       
+#     }
+#   }
+# }
+# 
+# length(unique(newcomm)) #gives you expected number of genotypes in polyculture based on survival probability
 
 ########example using lme4.0#####
 exprs.LR<- function(trait,df,cov, family=gaussian){
