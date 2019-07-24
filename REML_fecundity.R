@@ -196,3 +196,33 @@ model8 <- lmer(seedEstMean ~ trt+numFecPlants+(1|stripNo), data=modeldata_f)
 # model5  6 2306.3 2326.1 -1147.1   2294.3 9.6949      1   0.001848 **
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+summary(model5)
+# Linear mixed model fit by REML ['lmerMod']
+# Formula: seedEstMean ~ divLevel + trt + numFecPlants + (1 | stripNo)
+# Data: modeldata_f
+# 
+# REML criterion at convergence: 2279.2
+# 
+# Scaled residuals: 
+#   Min      1Q  Median      3Q     Max 
+# -1.3343 -0.5783 -0.2022  0.2167  6.0560 
+# 
+# Random effects:
+#   Groups   Name        Variance Std.Dev.
+# stripNo  (Intercept)  160.4   12.67   
+# Residual             5022.2   70.87   
+# Number of obs: 202, groups:  stripNo, 4
+# 
+# Fixed effects:
+#   Estimate Std. Error t value
+# (Intercept)   48.0836    14.8817   3.231
+# divLevel       2.5522     0.7924   3.221
+# trtS         -23.4595    10.1001  -2.323
+# numFecPlants   2.6806     0.8994   2.980
+# 
+# Correlation of Fixed Effects:
+#   (Intr) divLvl trtS  
+# divLevel    -0.541              
+# trtS        -0.389  0.062       
+# numFecPlnts -0.734  0.418  0.091

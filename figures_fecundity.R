@@ -8,6 +8,7 @@ library(plyr)
 # fieldData <- read.csv("FieldDataWithDiversityInfo.csv")
 # lineData <- read.csv("chosenLines.csv")
 modeldata <- read.delim("modeldata_20190711.txt", na.strings=c(""," ","NA"))
+fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
 
 seed_mean <- ddply(fecundityData, .(Pot.Number), summarize, 
                    seedEstMean=mean(Seed_Num_estimate),potTotSiliqueNum=sum(Total.Slique.Number),numFecPlants=length(Pot.Number))
@@ -16,7 +17,7 @@ modeldata_f<-modeldata_f[!is.na(modeldata_f$seedEstMean),] #lose 18 damaged pots
 
 
 ####scatterplots####
-#biomass
+#seedEstMean
 
 pseedEst_div <- ggplot(modeldata_f,aes(divLevel,seedEstMean, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
