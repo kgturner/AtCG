@@ -14,11 +14,12 @@ library("lme4")
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 #data
-fieldData <- read.csv("FieldDataWithDiversityInfo_14May19.csv", na.strings=c(""," ","NA"))#using data from excel file 3_21_19
-lineData <- read.csv("chosenLines.csv", na.strings=c(""," ","NA"))
-damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
-prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt", na.strings=c(""," ","NA")) #census data based on photos from 6/12/2018
-SLAbv <- read.csv("logSLA_breedingvalues_6June2019.csv", na.strings=c(""," ","NA"))
+modeldata <- read.delim("modeldata_20190828.txt", na.strings=c(""," ","NA")) #see construction below. Made from:
+# fieldData <- read.csv("FieldDataWithDiversityInfo_2Aug19.csv", na.strings=c(""," ","NA"))
+# lineData <- read.csv("chosenLines.csv", na.strings=c(""," ","NA"))
+# # damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
+# prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt", na.strings=c(""," ","NA")) #census data based on photos from 6/12/2018
+# SLAbv <- read.csv("logSLA_breedingvalues_6June2019.csv", na.strings=c(""," ","NA"))
 
 #column explanations
 #PCs5_distPSU - climate distance from PSU for that line
@@ -64,61 +65,61 @@ prelimSurv$MaxPlantNum <- pmax(prelimSurv$PlantNum_Initial, prelimSurv$totMinusG
 
 ####merging for modeldataset####
 #merge plant num data
-modeldata <- merge.data.frame(fieldData, prelimSurv, by="PotID")
-#480 obvs of 116 var
-#also remove non-NA plots that were trampled/dug up/washed out
-modeldata <- subset(modeldata, !(PotID %in% damaged_pot), select = c(1,3,5:31,36:37, 53:54, 64,66:68, 80,81,109:116)) #removed cow/dog/flood damaged pots
-#430 obvs of 47 var
-# hist(modeldata$MaxPlantNum, breaks = 20)
-
-#add SLA breeding values to model data set
-#for control
-md_c <- subset(modeldata, trt %in% "C" & plotType %!in% "mono", select = c(1, 3:25))
-md_c3 <- data.frame(PotID=md_c$PotID)
-md_c3$temp <- NA
-for(i in seq_along(md_c)[5:24]) {
-  md_c3$temp <- SLAbv[match(md_c[,i], SLAbv$lines),2] #col 2 is trtC
-  names(md_c3)[names(md_c3)=="temp"] <- paste0("SLAcol",i)
-}
-md_c3$mean_SLAbv <- rowMeans(md_c3[,2:21], na.rm=TRUE)
-
-#for stress
-md_s <- subset(modeldata, trt %in% "S" & plotType %!in% "mono", select = c(1, 3:25))
-md_s3 <- data.frame(PotID=md_s$PotID)
-md_s3$temp <- NA
-for(i in seq_along(md_s)[5:24]) {
-  md_s3$temp <- SLAbv[match(md_s[,i], SLAbv$lines),3] #col 2 is trtC
-  names(md_s3)[names(md_s3)=="temp"] <- paste0("SLAcol",i)
-}
-md_s3$mean_SLAbv <- rowMeans(md_s3[,2:21], na.rm=TRUE)
-
-#for mono
-library("tidyr")
-SLAbv2 <- SLAbv %>% gather(trtC, trtS, key = "trt", value = "mean_SLAbv")
-SLAbv2[SLAbv2$trt %in% "trtC",]$trt <- "C"
-SLAbv2[SLAbv2$trt %in% "trtS",]$trt <- "S"
-SLAbv2$trt <- as.factor(SLAbv2$trt)
-mono <- subset(modeldata, plotType %in% "mono")
-mono <- merge.data.frame(mono, SLAbv2, by.x=c("lines1", "trt"), by.y=c("lines","trt"), all = TRUE)
-#319 obvs of 48 var
-
-#merge back!
-modeldata <- merge.data.frame(modeldata, mono, all.x=TRUE)
-#430 obs of 48 var
-# modeldata[11:20,c(1:6,48)] #to check
-modeldata[modeldata$PotID %in% md_c3$PotID,]$mean_SLAbv <- md_c3$mean_SLAbv
-modeldata[modeldata$PotID %in% md_s3$PotID,]$mean_SLAbv <- md_s3$mean_SLAbv
-
-write.table(modeldata, "modeldata_20190711.txt", quote=F, sep="\t")
-modeldata <- read.delim("modeldata_20190711.txt", na.strings=c(""," ","NA"))
+# modeldata <- merge.data.frame(fieldData, prelimSurv[,c(1,4:6,8:9)], by="PotID")#avoid duplicate columns
+# #480 obvs of 87 var
+# #also remove non-NA plots that were trampled/dug up/washed out
+# modeldata <- subset(modeldata, Damaged_pot %!in% "damaged")
+# modeldata <- subset(modeldata, select = c(1,3,5:31,35:37, 52:54, 68, 80:87))
+# #429 obvs of 44 var
+# ##modeldata <- subset(modeldata, !(PotID %in% damaged_pot), select = c(1,3,5:31,35:37, 52:54, 68:81)) #removed cow/dog/flood damaged pots
+# # hist(modeldata$MaxPlantNum, breaks = 20)
+# 
+# #add SLA breeding values to model data set
+# #for control
+# md_c <- subset(modeldata, trt %in% "C" & plotType %!in% "mono", select = c(1, 3:25))
+# md_c3 <- data.frame(PotID=md_c$PotID)
+# md_c3$temp <- NA
+# for(i in seq_along(md_c)[5:24]) {
+#   md_c3$temp <- SLAbv[match(md_c[,i], SLAbv$lines),2] #col 2 is trtC
+#   names(md_c3)[names(md_c3)=="temp"] <- paste0("SLAcol",i)
+# }
+# md_c3$mean_SLAbv <- rowMeans(md_c3[,2:21], na.rm=TRUE)
+# 
+# #for stress
+# md_s <- subset(modeldata, trt %in% "S" & plotType %!in% "mono", select = c(1, 3:25))
+# md_s3 <- data.frame(PotID=md_s$PotID)
+# md_s3$temp <- NA
+# for(i in seq_along(md_s)[5:24]) {
+#   md_s3$temp <- SLAbv[match(md_s[,i], SLAbv$lines),3] #col 2 is trtC
+#   names(md_s3)[names(md_s3)=="temp"] <- paste0("SLAcol",i)
+# }
+# md_s3$mean_SLAbv <- rowMeans(md_s3[,2:21], na.rm=TRUE)
+# 
+# #for mono
+# library("tidyr")
+# SLAbv2 <- SLAbv %>% gather(trtC, trtS, key = "trt", value = "mean_SLAbv")
+# SLAbv2[SLAbv2$trt %in% "trtC",]$trt <- "C"
+# SLAbv2[SLAbv2$trt %in% "trtS",]$trt <- "S"
+# SLAbv2$trt <- as.factor(SLAbv2$trt)
+# mono <- subset(modeldata, plotType %in% "mono")
+# mono <- merge.data.frame(mono, SLAbv2, by.x=c("lines1", "trt"), by.y=c("lines","trt"), all = TRUE)
+# #319 obvs of 45 var
+# 
+# #merge back!
+# modeldata <- merge.data.frame(modeldata, mono, all.x=TRUE)
+# #429 obs of 45 var
+# # modeldata[11:20,c(1:6,48)] #to check
+# modeldata[modeldata$PotID %in% md_c3$PotID,]$mean_SLAbv <- md_c3$mean_SLAbv
+# modeldata[modeldata$PotID %in% md_s3$PotID,]$mean_SLAbv <- md_s3$mean_SLAbv
+# 
+# write.table(modeldata, "modeldata_20190828.txt", quote=F, sep="\t")
+modeldata <- read.delim("modeldata_20190828.txt", na.strings=c(""," ","NA"))
 
 
 ###################################################
 ####modeling dataset for biomass####
 #dataset for modeling
 modeldata_m<-modeldata[!is.na(modeldata$FH_Wt),]
-
-
 # modeldata <- subset(modeldata, PlantNum_Initial >12) #exclude plots with fewer than 12 plants (out of 20)? Check if this changes results does not change results
 #modeldata$testRand <- as.factor(rep("A", times=nrow(modeldata))) #for testing random effects...?
 summary(modeldata_m)
@@ -247,20 +248,20 @@ model7<-lmer(perPlantFH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata_m)
 
 ####biomass ~ genetic kinship models####
 #example full models
-#biomass ~ plot average genetic distance (meanKin) * stress trt * climate pca(PC5dist_mean) + density after transplant + (1| block)
+#biomass ~ plot average genetic distance (meanGenD) * stress trt * climate pca(PC5dist_mean) + density after transplant + (1| block)
 #include Germ rating?
 
-model1_gen<-lmer(perPlantFH_Wt ~ meanKin*trt+PC5dist_mean+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m)
-model2_gen<-lmer(perPlantFH_Wt ~ meanKin+trt+PC5dist_mean+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m)
-model3_gen<-lmer(perPlantFH_Wt ~ meanKin+trt+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m)
+model1_gen<-lmer(perPlantFH_Wt ~ meanGenD*trt+PC5dist_mean+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m)
+model2_gen<-lmer(perPlantFH_Wt ~ meanGenD+trt+PC5dist_mean+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m)
+model3_gen<-lmer(perPlantFH_Wt ~ meanGenD+trt+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m)
 
-# modeldata_m2 <- modeldata_m[!is.na(modeldata_m$mean_SLAbv),] #remove rows with NAs for mean_SLAbv so datasets are the same size
-model3.1_gen<-lmer(perPlantFH_Wt ~ meanKin+trt+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m2)
-model4.1_gen<-lmer(perPlantFH_Wt ~ meanKin+trt+FT1001_mean+(1|stripNo), data=modeldata_m2)
+modeldata_m2 <- modeldata_m[!is.na(modeldata_m$mean_SLAbv),] #remove rows with NAs for mean_SLAbv so datasets are the same size
+model3.1_gen<-lmer(perPlantFH_Wt ~ meanGenD+trt+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m2)
+model4.1_gen<-lmer(perPlantFH_Wt ~ meanGenD+trt+FT1001_mean+(1|stripNo), data=modeldata_m2)
 
-model4_gen<-lmer(perPlantFH_Wt ~ meanKin+trt+FT1001_mean+(1|stripNo), data=modeldata_m)
-model5_gen<-lmer(perPlantFH_Wt ~ meanKin+trt+(1|stripNo), data=modeldata_m)
-model6_gen<-lmer(perPlantFH_Wt ~ meanKin+FT1001_mean +(1|stripNo), data=modeldata_m)
+model4_gen<-lmer(perPlantFH_Wt ~ meanGenD+trt+FT1001_mean+(1|stripNo), data=modeldata_m)
+model5_gen<-lmer(perPlantFH_Wt ~ meanGenD+trt+(1|stripNo), data=modeldata_m)
+model6_gen<-lmer(perPlantFH_Wt ~ meanGenD+FT1001_mean +(1|stripNo), data=modeldata_m)
 model7_gen<-lmer(perPlantFH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata_m)
 
 
@@ -268,87 +269,87 @@ model7_gen<-lmer(perPlantFH_Wt ~ trt+FT1001_mean+(1|stripNo), data=modeldata_m)
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata_m
 # Models:
-#   model2_gen: perPlantFH_Wt ~ meanKin + trt + PC5dist_mean + FT1001_mean + 
+# model2_gen: perPlantFH_Wt ~ meanGenD + trt + PC5dist_mean + FT1001_mean + 
 #   model2_gen:     mean_SLAbv + (1 | stripNo)
-# model1_gen: perPlantFH_Wt ~ meanKin * trt + PC5dist_mean + FT1001_mean + 
+# model1_gen: perPlantFH_Wt ~ meanGenD * trt + PC5dist_mean + FT1001_mean + 
 #   model1_gen:     mean_SLAbv + (1 | stripNo)
 # Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
-# model2_gen  8 -2310.1 -2278.6   1163  -2326.1                         
-# model1_gen  9 -2308.1 -2272.7   1163  -2326.1 0.0159      1     0.8996
+# model2_gen  8 -2310.3 -2278.9 1163.2  -2326.3                         
+# model1_gen  9 -2308.4 -2272.9 1163.2  -2326.4 0.0172      1     0.8958
 (a2_gen <- anova(model3_gen,model2_gen)) # is PC5dist_mean covariate sig? no
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata_m
 # Models:
-#   model3_gen: perPlantFH_Wt ~ meanKin + trt + FT1001_mean + mean_SLAbv + (1 | 
-#                                                                             model3_gen:     stripNo)
-# model2_gen: perPlantFH_Wt ~ meanKin + trt + PC5dist_mean + FT1001_mean + 
+#   model3_gen: perPlantFH_Wt ~ meanGenD + trt + FT1001_mean + mean_SLAbv + (1 | 
+#                                                                              model3_gen:     stripNo)
+# model2_gen: perPlantFH_Wt ~ meanGenD + trt + PC5dist_mean + FT1001_mean + 
 #   model2_gen:     mean_SLAbv + (1 | stripNo)
 # Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
-# model3_gen  7 -2310.2 -2282.7 1162.1  -2324.2                         
-# model2_gen  8 -2310.1 -2278.6 1163.0  -2326.1 1.8842      1     0.1699
+# model3_gen  7 -2310.4 -2282.9 1162.2  -2324.4                         
+# model2_gen  8 -2310.3 -2278.9 1163.2  -2326.3 1.9068      1     0.1673
 (a3_gen <- anova(model4.1_gen, model3.1_gen)) #is SLA sig? no
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata_m2
 # Models:
-#   model4.1_gen: perPlantFH_Wt ~ meanKin + trt + FT1001_mean + (1 | stripNo)
-# model3.1_gen: perPlantFH_Wt ~ meanKin + trt + FT1001_mean + mean_SLAbv + (1 | 
-#                                                                             model3.1_gen:     stripNo)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
-# model4.1_gen  6 -2309.6 -2286.0 1160.8  -2321.6                         
-# model3.1_gen  7 -2310.2 -2282.7 1162.1  -2324.2 2.6232      1     0.1053
+#   model4.1_gen: perPlantFH_Wt ~ meanGenD + trt + FT1001_mean + (1 | stripNo)
+# model3.1_gen: perPlantFH_Wt ~ meanGenD + trt + FT1001_mean + mean_SLAbv + (1 | 
+#                                                                              model3.1_gen:     stripNo)
+# Df     AIC     BIC logLik deviance Chisq Chi Df Pr(>Chisq)
+# model4.1_gen  6 -2309.8 -2286.2 1160.9  -2321.8                        
+# model3.1_gen  7 -2310.4 -2282.9 1162.2  -2324.4 2.642      1     0.1041
 (a4_gen <- anova(model5_gen, model4_gen)) #is FT1001_mean sig? yes
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata_m
 # Models:
-#   model5_gen: perPlantFH_Wt ~ meanKin + trt + (1 | stripNo)
-# model4_gen: perPlantFH_Wt ~ meanKin + trt + FT1001_mean + (1 | stripNo)
-# Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
-# model5_gen  5 -2455.9 -2435.9 1233.0  -2465.9                             
-# model4_gen  6 -2469.4 -2445.4 1240.7  -2481.4 15.435      1  8.538e-05 ***
+#   model5_gen: perPlantFH_Wt ~ meanGenD + trt + (1 | stripNo)
+# model4_gen: perPlantFH_Wt ~ meanGenD + trt + FT1001_mean + (1 | stripNo)
+# Df     AIC     BIC logLik deviance Chisq Chi Df Pr(>Chisq)    
+# model5_gen  5 -2456.0 -2436.1 1233.0  -2466.0                            
+# model4_gen  6 -2469.6 -2445.6 1240.8  -2481.6 15.54      1   8.08e-05 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 (a5_gen <- anova(model6_gen, model4_gen)) #is trt sig? yes
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata_m
 # Models:
-#   model6_gen: perPlantFH_Wt ~ meanKin + FT1001_mean + (1 | stripNo)
-# model4_gen: perPlantFH_Wt ~ meanKin + trt + FT1001_mean + (1 | stripNo)
+#   model6_gen: perPlantFH_Wt ~ meanGenD + FT1001_mean + (1 | stripNo)
+# model4_gen: perPlantFH_Wt ~ meanGenD + trt + FT1001_mean + (1 | stripNo)
 # Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)   
-# model6_gen  5 -2462.6 -2442.6 1236.3  -2472.6                            
-# model4_gen  6 -2469.4 -2445.4 1240.7  -2481.4 8.8104      1   0.002995 **
+# model6_gen  5 -2462.8 -2442.8 1236.4  -2472.8                            
+# model4_gen  6 -2469.6 -2445.6 1240.8  -2481.6 8.8208      1   0.002978 **
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-(a6_gen <- anova(model7_gen, model4_gen)) #is meanKin sig? no
+(a6_gen <- anova(model7_gen, model4_gen)) #is meanGenD sig? no
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata_m
 # Models:
 #   model7_gen: perPlantFH_Wt ~ trt + FT1001_mean + (1 | stripNo)
-# model4_gen: perPlantFH_Wt ~ meanKin + trt + FT1001_mean + (1 | stripNo)
+# model4_gen: perPlantFH_Wt ~ meanGenD + trt + FT1001_mean + (1 | stripNo)
 # Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)
 # model7_gen  5 -2469.8 -2449.8 1239.9  -2479.8                         
-# model4_gen  6 -2469.4 -2445.4 1240.7  -2481.4 1.5737      1     0.2097
+# model4_gen  6 -2469.6 -2445.6 1240.8  -2481.6 1.7963      1     0.1802
 
 # (a7_gen <- anova(model8_gen, model6_gen)) #is  sig?
 
 
 ###
-#compare meanKin and divlevel
+#compare meanGenD and divlevel
 (ax <- anova(model4, model4_gen)) #is one better? no
 # refitting model(s) with ML (instead of REML)
 # Data: modeldata_m
 # Models:
 #   model4: perPlantFH_Wt ~ divLevel + trt + FT1001_mean + (1 | stripNo)
-# model4_gen: perPlantFH_Wt ~ meanKin + trt + FT1001_mean + (1 | stripNo)
+# model4_gen: perPlantFH_Wt ~ meanGenD + trt + FT1001_mean + (1 | stripNo)
 # Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)    
 # model4      6 -2468.2 -2444.2 1240.1  -2480.2                             
-# model4_gen  6 -2469.4 -2445.4 1240.7  -2481.4 1.1574      0  < 2.2e-16 ***
+# model4_gen  6 -2469.6 -2445.6 1240.8  -2481.6 1.3801      0  < 2.2e-16 ***
 #   ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 # If it says there are 0 d.f. then what you want to do is a Chi-square test using the X2 value and 1 d.f. freedom to get the p value.
 # dchisq(X,df) #where X is the Chisq value from the anova table (37.085 in your case) 
 #and df is Df in the anova table +1 (0 + 1 in your case)
-dchisq(1.1574,1) #result is p-value
-# [1] 0.2078941 so div level and meanKin are not different
+dchisq(1.3801,1) #result is p-value
+# [1] 0.1703217 so div level and meanGenD are not different
 
 #pred vs div
 model9_gen<-lmer(perPlantFH_Wt ~ trt+FT1001_mean+plotType+(1|stripNo), data=modeldata_m)
