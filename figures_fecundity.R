@@ -7,7 +7,7 @@ library(plyr)
 #data
 # fieldData <- read.csv("FieldDataWithDiversityInfo.csv")
 # lineData <- read.csv("chosenLines.csv")
-modeldata <- read.delim("modeldata_20190711.txt", na.strings=c(""," ","NA"))
+modeldata <- read.delim("modeldata_20190828.txt", na.strings=c(""," ","NA"))
 fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
 
 seed_mean <- ddply(fecundityData, .(Pot.Number), summarize, 
@@ -28,3 +28,9 @@ pseedEst_div <- ggplot(modeldata_f,aes(divLevel,seedEstMean, color=trt))+geom_po
   theme(legend.position=c(.9,.9))
 # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
 pseedEst_div
+
+png("AtCG_fecundity.png",width=665, height = 400, pointsize = 12)
+# svg("KTurnerFig3.svg", width=6.65, height=9, pointsize = 12)
+# multiplot(pbiomass_div, pbiomass_kin,pbiomass_ft, cols=3) 
+pseedEst_div
+dev.off()
