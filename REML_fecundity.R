@@ -52,7 +52,7 @@ fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
 
 ####merging for modeldataset####
 #created in REML_biomass.R
-modeldata <- read.delim("modeldata_20190711.txt", na.strings=c(""," ","NA"))
+modeldata <- read.delim("modeldata_20190828.txt", na.strings=c(""," ","NA"))
 
 ###################################################
 ####modeling dataset for fecundity####
