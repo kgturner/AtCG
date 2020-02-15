@@ -66,7 +66,7 @@ modeldata_f <- merge.data.frame(modeldata, seed_mean, by.x="PotID", by.y="Pot.Nu
 modeldata_f<-modeldata_f[!is.na(modeldata_f$seedEstMean),] #lose 18 damaged pots
 summary(modeldata_f)
 
-seed_mean$Pot.Number %!in% modeldata_f$PotID
+summary(seed_mean$Pot.Number %!in% modeldata_f$PotID)
 
 ## fec_freq <- as.data.frame(table(fecundityData$Pot.Number)) #Var1 = Pot ID, Freq = # of plants harvested early w/ fruit
 # (sum of seed number estimate by plot)/(fecundity frequncy + FH_Num)
