@@ -33,6 +33,7 @@ levels(modeldata_p$typePlot)<-c(levels(modeldata_p$typePlot),"div")  #Add the ex
 modeldata_p$typePlot[is.na(modeldata_p$typePlot)] <- "div"           #Change NA to "div"
 summary(modeldata_p)
 
+
 # model1<-lmer(perPlantFH_Wt ~ divLevel*trt+PC5dist_mean+FT1001_mean+mean_SLAbv+(1|stripNo), data=modeldata_m)
 #
 #covariates to test:
@@ -122,3 +123,56 @@ posthoc
 # SimClimGdiv-SimClimFdiv -1.384543e-03 -0.016006045 0.013236958 0.9997789
 # div-SimClimFdiv         -1.068243e-03 -0.012221087 0.010084601 0.9997661
 # div-SimClimGdiv          3.163008e-04 -0.010836543 0.011469145 0.9999994
+
+###no random plots?
+modeldata_p <- modeldata_p[modeldata_p$typePlot %!in% "div",]
+
+tmp2 <- c() #typePlot, pred plots only
+
+tmod2 <- lm(perPlantFH_Wt  ~ trt + trt:typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,] )
+tmp2 <- rbind(tmp2, cbind(summary(tmod2)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod2)[[9]]))
+tmp2
+
+# > tmp2
+#                             Estimate     Pr(>|t|)      r2adj
+# (Intercept)               0.023479046 2.721435e-06 0.07981525
+# trtS                     -0.017937041 7.747284e-03 0.07981525
+# trtC:typePlotGdiv        -0.015517788 1.493054e-02 0.07981525
+# trtS:typePlotGdiv         0.003437446 6.101166e-01 0.07981525
+# trtC:typePlotLF          -0.016100356 1.596548e-02 0.07981525
+# trtS:typePlotLF           0.003002931 6.416568e-01 0.07981525
+# trtC:typePlotSimClimFdiv -0.015998941 1.659536e-02 0.07981525
+# trtS:typePlotSimClimFdiv  0.010401778 1.502798e-01 0.07981525
+# trtC:typePlotSimClimGdiv -0.011145199 8.933886e-02 0.07981525
+# trtS:typePlotSimClimGdiv  0.001219378 8.643974e-01 0.07981525
+
+anova(lm(perPlantFH_Wt ~ trt*typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,]))
+
+# Analysis of Variance Table
+# 
+# Response: perPlantFH_Wt
+# Df    Sum Sq    Mean Sq F value  Pr(>F)  
+# trt           1 0.0001203 0.00012027  1.0750 0.30589  
+# typePlot      4 0.0003654 0.00009134  0.8164 0.52213  
+# trt:typePlot  4 0.0010065 0.00025162  2.2490 0.08034 .
+# Residuals    41 0.0045870 0.00011188                  
+# ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+a1 <- aov(perPlantFH_Wt ~ trt *typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,])
+a1
+
+# Call:
+#   aov(formula = perPlantFH_Wt ~ trt * typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 
+#                                                                      10, ])
+# 
+# Terms:
+#   trt    typePlot trt:typePlot   Residuals
+# Sum of Squares  0.000120273 0.000365358  0.001006468 0.004586972
+# Deg. of Freedom           1           4            4          41
+# 
+# Residual standard error: 0.01057721
+# Estimated effects may be unbalanced
+
+posthoc <- TukeyHSD(x=a1, 'typePlot', conf.level=0.95)
+posthoc

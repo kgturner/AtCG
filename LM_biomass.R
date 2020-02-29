@@ -229,3 +229,55 @@ tmp6
 # trtS         -0.3404750875 9.559905e-18 0.2016296
 # trtC:treeDiv -0.0009694545 6.554810e-01 0.2016296
 # trtS:treeDiv -0.0003465502 8.752998e-01 0.2016296
+
+
+####different results when we use PlantNum_Initial instead of MaxPlantNum?####
+
+modeldata_m.1<-modeldata[!is.na(modeldata$FH_Wt),]
+summary(modeldata_m.1)
+modeldata_m.1$perPlantFH_Wt <- modeldata_m.1$FH_Wt/modeldata_m.1$PlantNum_Initial
+hist(modeldata_m.1$PlantNum_Initial)
+
+##LM models - biomass
+
+#table to save results
+tmp <- c() #divLevel
+tmp3 <- c()#mean_SLAbv
+tmp4 <- c()#FT1001_mean
+
+
+tmod <- lm(perPlantFH_Wt  ~ trt + trt:divLevel, data = modeldata_m.1[modeldata_m.1$PlantNum_Initial > 10,] )
+tmp <- rbind(tmp, cbind(summary(tmod)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod)[[9]]))
+tmp
+
+# > tmp
+#                   Estimate     Pr(>|t|)      r2adj
+# (Intercept)    1.325074e-02 5.135316e-34 0.01325232
+# trtS          -2.922080e-03 3.630476e-02 0.01325232
+# trtC:divLevel -4.441865e-05 7.471801e-01 0.01325232
+# trtS:divLevel -1.255956e-04 4.011485e-01 0.01325232
+#changes numbers only slightly from MaxPlantNum
+
+tmod3 <- lm(perPlantFH_Wt  ~ trt + trt:mean_SLAbv, data = modeldata_m.1[modeldata_m.1$PlantNum_Initial > 10,])
+tmp3 <- rbind(tmp3, cbind(summary(tmod3)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod3)[[9]]))
+tmp3
+
+# > tmp3
+#                   Estimate   Pr(>|t|)     r2adj
+# (Intercept)      0.000567879 0.90784151 0.0271918
+# trtS             0.004861678 0.50013063 0.0271918
+# trtC:mean_SLAbv -0.009457065 0.00935875 0.0271918
+# trtS:mean_SLAbv -0.003957689 0.34434155 0.0271918
+#changes numbers only slightly from MaxPlantNum
+
+tmod4 <- lm(perPlantFH_Wt  ~ trt + trt:FT1001_mean, data = modeldata_m.1[modeldata_m.1$MaxPlantNum > 10,])
+tmp4 <- rbind(tmp4, cbind(summary(tmod4)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod4)[[9]]))
+tmp4
+
+# > tmp4
+#                     Estimate     Pr(>|t|)      r2adj
+# (Intercept)       0.0037542031 0.3560304586 0.05374987
+# trtS             -0.0074938902 0.1947904222 0.05374987
+# trtC:FT1001_mean  0.0001336412 0.0196454241 0.05374987
+# trtS:FT1001_mean  0.0001916760 0.0007672021 0.05374987
+#changes numbers only slightly from MaxPlantNum
