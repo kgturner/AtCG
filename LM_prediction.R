@@ -11,6 +11,8 @@ modeldata <- read.delim("modeldata_20190828.txt", na.strings=c(""," ","NA")) #se
 # # damaged_pot <- c(2,9,100,110,111,120,121,126,128,130,138,166,186,200,201,202,209,213,214,217,230,232,233,246,247,263,264,266,331,362,363,365,367,368,371,376,378,383,384,390,392,396,406,410,436,438,439,440,444,450)
 # prelimSurv <- read.delim("PrelimSurvivalData_20190321.txt", na.strings=c(""," ","NA")) #census data based on photos from 6/12/2018
 # SLAbv <- read.csv("logSLA_breedingvalues_6June2019.csv", na.strings=c(""," ","NA"))
+fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
+
 predtype <- read.delim ("plots_withPredictTypes.csv", sep = ",", na.strings=c(""," ","NA"))
 
 #plotType: div, mono, pred
@@ -107,7 +109,7 @@ posthoc
 # Fit: aov(formula = perPlantFH_Wt ~ trt * typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10, ])
 # 
 # $typePlot
-# diff          lwr         upr     p adj
+#                               diff          lwr         upr     p adj
 # Gdiv-EF                 -6.901773e-03 -0.020127419 0.006323874 0.6534992
 # LF-EF                   -6.991182e-03 -0.020216828 0.006234464 0.6408857
 # SimClimFdiv-EF          -4.119643e-03 -0.018060699 0.009821412 0.9550048
@@ -124,55 +126,129 @@ posthoc
 # div-SimClimFdiv         -1.068243e-03 -0.012221087 0.010084601 0.9997661
 # div-SimClimGdiv          3.163008e-04 -0.010836543 0.011469145 0.9999994
 
-###no random plots?
-modeldata_p <- modeldata_p[modeldata_p$typePlot %!in% "div",]
+# ###no random plots?
+# modeldata_p <- modeldata_p[modeldata_p$typePlot %!in% "div",]
+# 
+# tmp2 <- c() #typePlot, pred plots only
+# 
+# tmod2 <- lm(perPlantFH_Wt  ~ trt + trt:typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,] )
+# tmp2 <- rbind(tmp2, cbind(summary(tmod2)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod2)[[9]]))
+# tmp2
+# 
+# # > tmp2
+# #                             Estimate     Pr(>|t|)      r2adj
+# # (Intercept)               0.023479046 2.721435e-06 0.07981525
+# # trtS                     -0.017937041 7.747284e-03 0.07981525
+# # trtC:typePlotGdiv        -0.015517788 1.493054e-02 0.07981525
+# # trtS:typePlotGdiv         0.003437446 6.101166e-01 0.07981525
+# # trtC:typePlotLF          -0.016100356 1.596548e-02 0.07981525
+# # trtS:typePlotLF           0.003002931 6.416568e-01 0.07981525
+# # trtC:typePlotSimClimFdiv -0.015998941 1.659536e-02 0.07981525
+# # trtS:typePlotSimClimFdiv  0.010401778 1.502798e-01 0.07981525
+# # trtC:typePlotSimClimGdiv -0.011145199 8.933886e-02 0.07981525
+# # trtS:typePlotSimClimGdiv  0.001219378 8.643974e-01 0.07981525
+# 
+# anova(lm(perPlantFH_Wt ~ trt*typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,]))
+# 
+# # Analysis of Variance Table
+# #
+# # Response: perPlantFH_Wt
+# # Df    Sum Sq    Mean Sq F value  Pr(>F)
+# # trt           1 0.0001203 0.00012027  1.0750 0.30589
+# # typePlot      4 0.0003654 0.00009134  0.8164 0.52213
+# # trt:typePlot  4 0.0010065 0.00025162  2.2490 0.08034 .
+# # Residuals    41 0.0045870 0.00011188
+# # ---
+# #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# a1 <- aov(perPlantFH_Wt ~ trt *typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,])
+# a1
+# 
+# # Call:
+# #   aov(formula = perPlantFH_Wt ~ trt * typePlot, data = modeldata_p[modeldata_p$MaxPlantNum >
+# #                                                                      10, ])
+# #
+# # Terms:
+# #   trt    typePlot trt:typePlot   Residuals
+# # Sum of Squares  0.000120273 0.000365358  0.001006468 0.004586972
+# # Deg. of Freedom           1           4            4          41
+# #
+# # Residual standard error: 0.01057721
+# # Estimated effects may be unbalanced
+# 
+# posthoc <- TukeyHSD(x=a1, 'typePlot', conf.level=0.95)
+# posthoc
 
-tmp2 <- c() #typePlot, pred plots only
 
-tmod2 <- lm(perPlantFH_Wt  ~ trt + trt:typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,] )
-tmp2 <- rbind(tmp2, cbind(summary(tmod2)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod2)[[9]]))
-tmp2
+####testing prediction plots - fecundity####
+modeldata_p <- merge.data.frame(modeldata, predtype[,c(1,8)], by="PotID")
+# modeldata_p<-modeldata_p[!is.na(modeldata$FH_Wt),]
+# modeldata_p$perPlantFH_Wt <- modeldata_p$FH_Wt/modeldata_p$MaxPlantNum
+modeldata_p <- modeldata_p[modeldata_p$plotType %!in% "mono",]
+levels(modeldata_p$typePlot)<-c(levels(modeldata_p$typePlot),"div")  #Add the extra level to your factor
+modeldata_p$typePlot[is.na(modeldata_p$typePlot)] <- "div"           #Change NA to "div"
+summary(modeldata_p)
 
-# > tmp2
-#                             Estimate     Pr(>|t|)      r2adj
-# (Intercept)               0.023479046 2.721435e-06 0.07981525
-# trtS                     -0.017937041 7.747284e-03 0.07981525
-# trtC:typePlotGdiv        -0.015517788 1.493054e-02 0.07981525
-# trtS:typePlotGdiv         0.003437446 6.101166e-01 0.07981525
-# trtC:typePlotLF          -0.016100356 1.596548e-02 0.07981525
-# trtS:typePlotLF           0.003002931 6.416568e-01 0.07981525
-# trtC:typePlotSimClimFdiv -0.015998941 1.659536e-02 0.07981525
-# trtS:typePlotSimClimFdiv  0.010401778 1.502798e-01 0.07981525
-# trtC:typePlotSimClimGdiv -0.011145199 8.933886e-02 0.07981525
-# trtS:typePlotSimClimGdiv  0.001219378 8.643974e-01 0.07981525
+library(plyr)
 
-anova(lm(perPlantFH_Wt ~ trt*typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,]))
+seed_mean <- ddply(fecundityData, .(Pot.Number), summarize, 
+                   seedEstMean=mean(Seed_Num_estimate),potTotSiliqueNum=sum(Total.Slique.Number),numFecPlants=length(Pot.Number))
+modeldata_pf <- merge.data.frame(modeldata_p, seed_mean, by.x="PotID", by.y="Pot.Number", all.x=TRUE)
 
+modeldata_pf<-modeldata_pf[!is.na(modeldata_pf$seedEstMean),] #lose 34 pots
+summary(modeldata_pf)
+
+summary(seed_mean$Pot.Number %!in% modeldata_pf$PotID)
+
+summary(modeldata_pf[modeldata_pf$MaxPlantNum > 10,]) #196 pots
+
+
+anova(lm(seedEstMean ~ trt*typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10,]))
 # Analysis of Variance Table
 # 
-# Response: perPlantFH_Wt
-# Df    Sum Sq    Mean Sq F value  Pr(>F)  
-# trt           1 0.0001203 0.00012027  1.0750 0.30589  
-# typePlot      4 0.0003654 0.00009134  0.8164 0.52213  
-# trt:typePlot  4 0.0010065 0.00025162  2.2490 0.08034 .
-# Residuals    41 0.0045870 0.00011188                  
+# Response: seedEstMean
+#               Df Sum Sq Mean Sq F value  Pr(>F)  
+# trt           1  30709 30709.1  3.4000 0.06990 .
+# typePlot      5 114297 22859.4  2.5309 0.03764 *
+# trt:typePlot  4  63163 15790.7  1.7483 0.15057  
+# Residuals    63 569021  9032.1                  
 # ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-a1 <- aov(perPlantFH_Wt ~ trt *typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 10,])
+a1 <- aov(seedEstMean ~ trt *typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10,])
 a1
-
 # Call:
-#   aov(formula = perPlantFH_Wt ~ trt * typePlot, data = modeldata_p[modeldata_p$MaxPlantNum > 
-#                                                                      10, ])
+# aov(formula = seedEstMean ~ trt * typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 
+#                                                                   10, ])
 # 
 # Terms:
-#   trt    typePlot trt:typePlot   Residuals
-# Sum of Squares  0.000120273 0.000365358  0.001006468 0.004586972
-# Deg. of Freedom           1           4            4          41
+#   trt typePlot trt:typePlot Residuals
+# Sum of Squares   30709.1 114296.9      63162.8  569020.6
+# Deg. of Freedom        1        5            4        63
 # 
-# Residual standard error: 0.01057721
+# Residual standard error: 95.03722
+# 1 out of 12 effects not estimable
 # Estimated effects may be unbalanced
-
 posthoc <- TukeyHSD(x=a1, 'typePlot', conf.level=0.95)
 posthoc
+# Tukey multiple comparisons of means
+# 95% family-wise confidence level
+# 
+# Fit: aov(formula = seedEstMean ~ trt * typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10, ])
+# 
+# $typePlot
+#                               diff        lwr        upr     p adj
+# Gdiv-EF                  -29.549465 -164.60707 105.508142 0.9871994
+# LF-EF                    135.054661  -79.67325 349.782572 0.4429206
+# SimClimFdiv-EF           -50.113929 -185.17154  84.943679 0.8833300
+# SimClimGdiv-EF           -52.915168 -194.68397  88.853630 0.8807440
+# div-EF                   -68.384457 -163.23538  26.466467 0.2910088
+# LF-Gdiv                  164.604126  -59.36358 388.571831 0.2709547
+# SimClimFdiv-Gdiv         -20.564464 -169.87627 128.747340 0.9985363
+# SimClimGdiv-Gdiv         -23.365702 -178.77435 132.042950 0.9977725
+# div-Gdiv                 -38.834991 -153.07227  75.402283 0.9164988
+# SimClimFdiv-LF          -185.168590 -409.13629  38.799115 0.1617498
+# SimClimGdiv-LF          -187.969829 -416.04738  40.107718 0.1643233
+# div-LF                  -203.439118 -405.72029  -1.157944 0.0479041
+# SimClimGdiv-SimClimFdiv   -2.801239 -158.20989 152.607414 0.9999999
+# div-SimClimFdiv          -18.270528 -132.50780  95.966747 0.9970115
+# div-SimClimGdiv          -15.469289 -137.56757 106.628989 0.9990214
