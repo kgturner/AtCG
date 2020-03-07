@@ -203,52 +203,50 @@ summary(seed_mean$Pot.Number %!in% modeldata_pf$PotID)
 summary(modeldata_pf[modeldata_pf$MaxPlantNum > 10,]) #196 pots
 
 
-anova(lm(seedEstMean ~ trt*typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10,]))
+anova(lm(seedEstMean ~ trt+typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10,]))
 # Analysis of Variance Table
 # 
 # Response: seedEstMean
-#               Df Sum Sq Mean Sq F value  Pr(>F)  
-# trt           1  30709 30709.1  3.4000 0.06990 .
-# typePlot      5 114297 22859.4  2.5309 0.03764 *
-# trt:typePlot  4  63163 15790.7  1.7483 0.15057  
-# Residuals    63 569021  9032.1                  
+# Df Sum Sq Mean Sq F value  Pr(>F)  
+# trt        1  30709 30709.1  3.2546 0.07572 .
+# typePlot   5 114297 22859.4  2.4227 0.04437 *
+#   Residuals 67 632183  9435.6                  
 # ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-a1 <- aov(seedEstMean ~ trt *typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10,])
+a1 <- aov(seedEstMean ~ trt + typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10,])
 a1
 # Call:
-# aov(formula = seedEstMean ~ trt * typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 
-#                                                                   10, ])
+#   aov(formula = seedEstMean ~ trt + typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 
+#                                                                     10, ])
 # 
 # Terms:
-#   trt typePlot trt:typePlot Residuals
-# Sum of Squares   30709.1 114296.9      63162.8  569020.6
-# Deg. of Freedom        1        5            4        63
+#   trt typePlot Residuals
+# Sum of Squares   30709.1 114296.9  632183.4
+# Deg. of Freedom        1        5        67
 # 
-# Residual standard error: 95.03722
-# 1 out of 12 effects not estimable
+# Residual standard error: 97.13688
 # Estimated effects may be unbalanced
 posthoc <- TukeyHSD(x=a1, 'typePlot', conf.level=0.95)
 posthoc
 # Tukey multiple comparisons of means
 # 95% family-wise confidence level
 # 
-# Fit: aov(formula = seedEstMean ~ trt * typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10, ])
+# Fit: aov(formula = seedEstMean ~ trt + typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10, ])
 # 
 # $typePlot
-#                               diff        lwr        upr     p adj
-# Gdiv-EF                  -29.549465 -164.60707 105.508142 0.9871994
-# LF-EF                    135.054661  -79.67325 349.782572 0.4429206
-# SimClimFdiv-EF           -50.113929 -185.17154  84.943679 0.8833300
-# SimClimGdiv-EF           -52.915168 -194.68397  88.853630 0.8807440
-# div-EF                   -68.384457 -163.23538  26.466467 0.2910088
-# LF-Gdiv                  164.604126  -59.36358 388.571831 0.2709547
-# SimClimFdiv-Gdiv         -20.564464 -169.87627 128.747340 0.9985363
-# SimClimGdiv-Gdiv         -23.365702 -178.77435 132.042950 0.9977725
-# div-Gdiv                 -38.834991 -153.07227  75.402283 0.9164988
-# SimClimFdiv-LF          -185.168590 -409.13629  38.799115 0.1617498
-# SimClimGdiv-LF          -187.969829 -416.04738  40.107718 0.1643233
-# div-LF                  -203.439118 -405.72029  -1.157944 0.0479041
-# SimClimGdiv-SimClimFdiv   -2.801239 -158.20989 152.607414 0.9999999
-# div-SimClimFdiv          -18.270528 -132.50780  95.966747 0.9970115
-# div-SimClimGdiv          -15.469289 -137.56757 106.628989 0.9990214
+# diff        lwr        upr     p adj
+# Gdiv-EF                  -29.549465 -167.33552 108.236590 0.9884351
+# LF-EF                    135.054661  -84.01121 354.120527 0.4672773
+# SimClimFdiv-EF           -50.113929 -187.89998  87.672126 0.8926255
+# SimClimGdiv-EF           -52.915168 -197.54799  91.717658 0.8902116
+# div-EF                   -68.384457 -165.15157  28.382655 0.3136430
+# LF-Gdiv                  164.604126  -63.88820 393.096450 0.2930273
+# SimClimFdiv-Gdiv         -20.564464 -172.89268 131.763752 0.9986863
+# SimClimGdiv-Gdiv         -23.365702 -181.91394 135.182531 0.9979991
+# div-Gdiv                 -38.834991 -155.38010  77.710116 0.9234792
+# SimClimFdiv-LF          -185.168590 -413.66091  43.323733 0.1790255
+# SimClimGdiv-LF          -187.969829 -420.65502  44.715364 0.1817513
+# div-LF                  -203.439118 -409.80680   2.928561 0.0555667
+# SimClimGdiv-SimClimFdiv   -2.801239 -161.34947 155.746995 0.9999999
+# div-SimClimFdiv          -18.270528 -134.81564  98.274580 0.9973136
+# div-SimClimGdiv          -15.469289 -140.03421 109.095630 0.9991223

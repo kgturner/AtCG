@@ -1,4 +1,4 @@
-#AtCG biomass and canopy figures
+#AtCG biomass (and canopy figures)
 #10/24/2018
 
 library(ggplot2)
@@ -7,37 +7,44 @@ library(plyr)
 #data
 # fieldData <- read.csv("FieldDataWithDiversityInfo.csv")
 # lineData <- read.csv("chosenLines.csv")
-modeldata <- read.delim("modeldata_20190711.txt", na.strings=c(""," ","NA"))
-
+modeldata <- read.delim("modeldata_20190828.txt", na.strings=c(""," ","NA")) #see construction in REML_biomass.R. Made from:
 modeldata_m<-modeldata[!is.na(modeldata$FH_Wt),]
+summary(modeldata_m)
 modeldata_m$perPlantFH_Wt <- modeldata_m$FH_Wt/modeldata_m$MaxPlantNum
 
-modeldata_c<-modeldata[!is.na(modeldata$CanopyArea),]
-modeldata_c$perPlantCanopy <- modeldata_c$CanopyArea/modeldata_c$MaxPlantNum
+names(modeldata_m)[5] <- "Treatment"
+modeldata_m$Treatment <- revalue(modeldata_m$Treatment, c("C"="High Resource", "S"="Low Resource"))
 
 
-####scatterplots####
-#biomass
+# tmod <- lm(perPlantFH_Wt  ~ trt + trt:divLevel, data = modeldata_m[modeldata_m$MaxPlantNum > 10,] )
+tmp <- c() #divLevel
 
-pbiomass_div <- ggplot(modeldata_m,aes(divLevel,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
-  geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
-  #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("plot diversity")+ylab("plot biomass at harvest")+ 
-  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() +
-  theme(legend.position=c(.9,.9))
-  # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
-pbiomass_div
+tmp3 <- c()#mean_SLAbv
+tmp4 <- c()#FT1001_mean
 
-pPerPlantMass_div <- ggplot(modeldata_m,aes(divLevel,perPlantFH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
-  geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
-  #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("plot diversity")+ylab("per plant biomass at harvest")+ 
-  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() +
-  theme(legend.position=c(.9,.9))
-# ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
-pPerPlantMass_div
+
+
+#####biomass - scatterplots####
+# pbiomass_div <- ggplot(modeldata_m,aes(divLevel,perPlantFH_Wt, color=trt))+ #geom_point() + #facet_grid(. ~ Trt)
+#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   geom_jitter(aes(shape=trt, color=trt), size=3) +
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("plot diversity level")+ylab("per plant biomass at harvest")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() +
+#   theme(legend.position=c(.9,.9))
+#   # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
+# pbiomass_div
+
+# pPerPlantMass_div <- ggplot(modeldata_m,aes(divLevel,perPlantFH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("plot diversity")+ylab("per plant biomass at harvest")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() +
+#   theme(legend.position=c(.9,.9))
+# # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
+# pPerPlantMass_div
 
 # pbiomass_kin <- ggplot(biomass,aes(meanKin,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
 #   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
@@ -49,17 +56,30 @@ pPerPlantMass_div
 # # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
 # pbiomass_kin
 # 
-# pbiomass_ft <- ggplot(biomass,aes(FT1001_mean,FH_Wt, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
-#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
-#   #   coord_cartesian(ylim = c(0, 1.02)) +
-#   xlab("FT1001_mean")+ylab("plot biomass at harvest")+ 
-#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-#   theme_bw() +
-#   theme(legend.position=c(.9,.9))
-# pbiomass_ft
+pbiomass_ft <- ggplot(modeldata_m[modeldata_m$MaxPlantNum > 10,],aes(FT1001_mean,perPlantFH_Wt, color=Treatment))+ 
+  geom_point(aes(shape=Treatment, color=Treatment), size=3) + #facet_grid(. ~ Trt)
+  geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+  # geom_jitter(aes(shape=trt, color=trt), size=3) +
+  #   coord_cartesian(ylim = c(0, 1.02)) +
+  labs(title = "(a)", x = "flowering time mean (FT)", y = "stand biomass at harvest")+
+  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+  theme_bw() +
+  theme(legend.position="none")   #c(.85,.85)
+pbiomass_ft
+
+pbiomass_SLA <- ggplot(modeldata_m[modeldata_m$MaxPlantNum > 10,],aes(mean_SLAbv,perPlantFH_Wt, color=Treatment))+ 
+  geom_point(aes(shape=Treatment, color=Treatment), size=3) + #facet_grid(. ~ Trt)
+  geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+  # geom_jitter(aes(shape=trt, color=trt), size=3) +
+  #   coord_cartesian(ylim = c(0, 1.02)) +
+  labs(title ="(b)" , x="SLA breeding value", y = "stand biomass at harvest")+
+  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+  theme_bw() +
+  theme(legend.position="none")   #c(.85,.85)
+pbiomass_SLA
 
 
-#canopy
+####canopy####
 pcanopy_div <- ggplot(modeldata_c,aes(divLevel,CanopyArea, color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
@@ -99,50 +119,52 @@ pPerPlantcanopy_div
 #   theme(legend.position=c(.9,.9))
 # pcanopy_ft
 
-#avg by div level
-#for plots of div level means
-biomass_mean <- ddply(biomass, .(divLevel, trt), summarize, 
-               divBiomass=mean(FH_Wt,na.rm = TRUE))
+####avg by div level####
+# #for plots of div level means
+# biomass_mean <- ddply(biomass, .(divLevel, trt), summarize, 
+#                divBiomass=mean(FH_Wt,na.rm = TRUE))
+# 
+# pbiomass.2 <- ggplot(biomass_mean,aes(divLevel,divBiomass,color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
+#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("plot diversity")+ylab("biomass")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() 
+#   # theme(legend.position="none")
+#   # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
+# pbiomass.2
+# 
+# pbiomass.3 <- ggplot(biomass_mean,aes(trt,divBiomass,color=divLevel, group=divLevel))+
+#   # geom_errorbar(aes(ymin=lCL, ymax=uCL),color="black", width=.1, position=position_dodge(0.1))+
+#   geom_line()+geom_point(size=3) + #facet_grid(. ~ Trt)
+#   # geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("treatment")+ylab("biomass")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() 
+# # theme(legend.position="none")
+# # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
+# pbiomass.3
+# 
+# #predicted and kin
+# pbiomass_kin_pred <- ggplot(biomass,aes(meanKin,FH_Wt, color=trt))+geom_point(aes(shape=plotType, color=trt), size=3) + #facet_grid(. ~ Trt)
+#   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+#   #   coord_cartesian(ylim = c(0, 1.02)) +
+#   xlab("plot mean kinship")+ylab("plot biomass at harvest")+ 
+#   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
+#   theme_bw() 
+#   # theme(legend.position="none")
+# # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
+# pbiomass_kin_pred
 
-pbiomass.2 <- ggplot(biomass_mean,aes(divLevel,divBiomass,color=trt))+geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
-  geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
-  #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("plot diversity")+ylab("biomass")+ 
-  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() 
-  # theme(legend.position="none")
-  # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
-pbiomass.2
 
-pbiomass.3 <- ggplot(biomass_mean,aes(trt,divBiomass,color=divLevel, group=divLevel))+
-  # geom_errorbar(aes(ymin=lCL, ymax=uCL),color="black", width=.1, position=position_dodge(0.1))+
-  geom_line()+geom_point(size=3) + #facet_grid(. ~ Trt)
-  # geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
-  #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("treatment")+ylab("biomass")+ 
-  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() 
-# theme(legend.position="none")
-# ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
-pbiomass.3
-
-#predicted and kin
-pbiomass_kin_pred <- ggplot(biomass,aes(meanKin,FH_Wt, color=trt))+geom_point(aes(shape=plotType, color=trt), size=3) + #facet_grid(. ~ Trt)
-  geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
-  #   coord_cartesian(ylim = c(0, 1.02)) +
-  xlab("plot mean kinship")+ylab("plot biomass at harvest")+ 
-  #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() 
-  # theme(legend.position="none")
-# ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
-pbiomass_kin_pred
 
 # ####make multi figs####
 
-# pdf("AtCG_biomass.pdf", useDingbats=FALSE,width=6.65, height=9, pointsize = 12)
-png("AtCG_biomass.png",width=665, height = 400, pointsize = 12)
+pdf("AtCG_biomass_fec.pdf", useDingbats=FALSE,width=18.65, height=6, pointsize = 12)
+# png("AtCG_biomass_fec.png",width=1265, height = 400, pointsize = 12)
 # svg("KTurnerFig3.svg", width=6.65, height=9, pointsize = 12)
-multiplot(pbiomass_div, pbiomass_kin,pbiomass_ft, cols=3) 
+multiplot(pbiomass_ft, pbiomass_SLA,pseedEst_div, cols=3) 
 dev.off()
 
 # pdf("AtCG_canopy.pdf", useDingbats=FALSE,width=6.65, height=9, pointsize = 12)
