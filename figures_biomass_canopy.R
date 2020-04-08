@@ -12,16 +12,23 @@ modeldata_m<-modeldata[!is.na(modeldata$FH_Wt),]
 summary(modeldata_m)
 modeldata_m$perPlantFH_Wt <- modeldata_m$FH_Wt/modeldata_m$MaxPlantNum
 
+
 names(modeldata_m)[5] <- "Treatment"
 modeldata_m$Treatment <- revalue(modeldata_m$Treatment, c("C"="High Resource", "S"="Low Resource"))
 
+#colors
+library(RColorBrewer)
+jesse <- brewer.pal(9, 'RdBu')[c(1,9)] #this will give low then high colors
+# # The palette with grey:
+# cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# # The palette with black:
+# cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-# tmod <- lm(perPlantFH_Wt  ~ trt + trt:divLevel, data = modeldata_m[modeldata_m$MaxPlantNum > 10,] )
-tmp <- c() #divLevel
-
-tmp3 <- c()#mean_SLAbv
-tmp4 <- c()#FT1001_mean
-
+# # tmod <- lm(perPlantFH_Wt  ~ trt + trt:divLevel, data = modeldata_m[modeldata_m$MaxPlantNum > 10,] )
+# tmp <- c() #divLevel
+# tmp3 <- c()#mean_SLAbv
+# tmp4 <- c()#FT1001_mean
+# 
 
 
 #####biomass - scatterplots####
@@ -59,23 +66,31 @@ tmp4 <- c()#FT1001_mean
 pbiomass_ft <- ggplot(modeldata_m[modeldata_m$MaxPlantNum > 10,],aes(FT1001_mean,perPlantFH_Wt, color=Treatment))+ 
   geom_point(aes(shape=Treatment, color=Treatment), size=3) + #facet_grid(. ~ Trt)
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+  scale_colour_manual(values=jesse)+
   # geom_jitter(aes(shape=trt, color=trt), size=3) +
   #   coord_cartesian(ylim = c(0, 1.02)) +
   labs(title = "(a)", x = "flowering time mean (FT)", y = "stand biomass at harvest")+
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() +
-  theme(legend.position="none")   #c(.85,.85)
+  theme_bw(base_size = 16) +
+  theme(legend.position="none") +  #c(.85,.85)
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), 
+        strip.background = element_blank())
 pbiomass_ft
 
 pbiomass_SLA <- ggplot(modeldata_m[modeldata_m$MaxPlantNum > 10,],aes(mean_SLAbv,perPlantFH_Wt, color=Treatment))+ 
   geom_point(aes(shape=Treatment, color=Treatment), size=3) + #facet_grid(. ~ Trt)
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+  scale_colour_manual(values=jesse)+
   # geom_jitter(aes(shape=trt, color=trt), size=3) +
   #   coord_cartesian(ylim = c(0, 1.02)) +
   labs(title ="(b)" , x="SLA breeding value", y = "stand biomass at harvest")+
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() +
-  theme(legend.position="none")   #c(.85,.85)
+  theme_bw(base_size = 16) +
+  theme(legend.position="none") +   #c(.85,.85)
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), 
+        strip.background = element_blank())
 pbiomass_SLA
 
 

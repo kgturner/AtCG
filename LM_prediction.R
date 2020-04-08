@@ -196,21 +196,22 @@ seed_mean <- ddply(fecundityData, .(Pot.Number), summarize,
 modeldata_pf <- merge.data.frame(modeldata_p, seed_mean, by.x="PotID", by.y="Pot.Number", all.x=TRUE)
 
 modeldata_pf<-modeldata_pf[!is.na(modeldata_pf$seedEstMean),] #lose 34 pots
+modeldata_pf <- modeldata_pf[modeldata_pf$typePlot%!in%"LF",] #lose 2 pots - Not enough of this plot type represented in fecundity data
 summary(modeldata_pf)
 
 summary(seed_mean$Pot.Number %!in% modeldata_pf$PotID)
 
-summary(modeldata_pf[modeldata_pf$MaxPlantNum > 10,]) #196 pots
+summary(modeldata_pf[modeldata_pf$MaxPlantNum > 10,]) #72 pots
 
 
 anova(lm(seedEstMean ~ trt+typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10,]))
 # Analysis of Variance Table
 # 
 # Response: seedEstMean
-# Df Sum Sq Mean Sq F value  Pr(>F)  
-# trt        1  30709 30709.1  3.2546 0.07572 .
-# typePlot   5 114297 22859.4  2.4227 0.04437 *
-#   Residuals 67 632183  9435.6                  
+#           Df Sum Sq Mean Sq F value  Pr(>F)  
+# trt        1  48967   48967  5.6573 0.02029 *
+# typePlot   4  44456   11114  1.2840 0.28526  
+# Residuals 66 571269    8656                  
 # ---
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 a1 <- aov(seedEstMean ~ trt + typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10,])
@@ -220,11 +221,11 @@ a1
 #                                                                     10, ])
 # 
 # Terms:
-#   trt typePlot Residuals
-# Sum of Squares   30709.1 114296.9  632183.4
-# Deg. of Freedom        1        5        67
+#                      trt typePlot Residuals
+# Sum of Squares   48967.1  44455.7  571269.0
+# Deg. of Freedom        1        4        66
 # 
-# Residual standard error: 97.13688
+# Residual standard error: 93.03543
 # Estimated effects may be unbalanced
 posthoc <- TukeyHSD(x=a1, 'typePlot', conf.level=0.95)
 posthoc
@@ -234,19 +235,14 @@ posthoc
 # Fit: aov(formula = seedEstMean ~ trt + typePlot, data = modeldata_pf[modeldata_pf$MaxPlantNum > 10, ])
 # 
 # $typePlot
-# diff        lwr        upr     p adj
-# Gdiv-EF                  -29.549465 -167.33552 108.236590 0.9884351
-# LF-EF                    135.054661  -84.01121 354.120527 0.4672773
-# SimClimFdiv-EF           -50.113929 -187.89998  87.672126 0.8926255
-# SimClimGdiv-EF           -52.915168 -197.54799  91.717658 0.8902116
-# div-EF                   -68.384457 -165.15157  28.382655 0.3136430
-# LF-Gdiv                  164.604126  -63.88820 393.096450 0.2930273
-# SimClimFdiv-Gdiv         -20.564464 -172.89268 131.763752 0.9986863
-# SimClimGdiv-Gdiv         -23.365702 -181.91394 135.182531 0.9979991
-# div-Gdiv                 -38.834991 -155.38010  77.710116 0.9234792
-# SimClimFdiv-LF          -185.168590 -413.66091  43.323733 0.1790255
-# SimClimGdiv-LF          -187.969829 -420.65502  44.715364 0.1817513
-# div-LF                  -203.439118 -409.80680   2.928561 0.0555667
-# SimClimGdiv-SimClimFdiv   -2.801239 -161.34947 155.746995 0.9999999
-# div-SimClimFdiv          -18.270528 -134.81564  98.274580 0.9973136
-# div-SimClimGdiv          -15.469289 -140.03421 109.095630 0.9991223
+#                               diff       lwr       upr     p adj
+# Gdiv-EF                 -29.852975 -156.0105  96.30457 0.9634229
+# SimClimFdiv-EF          -50.417439 -176.5750  75.74011 0.7949980
+# SimClimGdiv-EF          -54.331546 -186.7580  78.09494 0.7789373
+# div-EF                  -68.565822 -157.1662  20.03459 0.2037923
+# SimClimFdiv-Gdiv        -20.564464 -160.0369 118.90795 0.9937238
+# SimClimGdiv-Gdiv        -24.478571 -169.6461 120.68893 0.9895350
+# div-Gdiv                -38.712847 -145.4221  67.99639 0.8464342
+# SimClimGdiv-SimClimFdiv  -3.914107 -149.0816 141.25339 0.9999924
+# div-SimClimFdiv         -18.148384 -124.8576  88.56086 0.9891905
+# div-SimClimGdiv         -14.234276 -128.2865  99.81794 0.9967010

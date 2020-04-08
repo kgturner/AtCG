@@ -29,11 +29,15 @@ pseedEst_div <- ggplot(modeldata_f[modeldata_f$MaxPlantNum > 10,],aes(divLevel,s
   # geom_point(aes(shape=trt, color=trt), size=3) + #facet_grid(. ~ Trt)
   geom_jitter(aes(shape=Treatment, color=Treatment), size=3) +
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
+  scale_colour_manual(values=jesse)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
   labs(title ="(c)" , x = "stand diversity level", y = "estimate seed per fecund plant in each stand")+ 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() +
-  theme(legend.position=c(.15,.85))
+  theme_bw(base_size = 16) +
+  theme(legend.position=c(.2,.85)) +
+  theme(panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), 
+    strip.background = element_blank())
 # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
 pseedEst_div
 
@@ -60,20 +64,28 @@ seed_mean <- ddply(fecundityData, .(Pot.Number), summarize,
 modeldata_pf <- merge.data.frame(modeldata_p, seed_mean, by.x="PotID", by.y="Pot.Number", all.x=TRUE)
 
 modeldata_pf<-modeldata_pf[!is.na(modeldata_pf$seedEstMean),]
+modeldata_pf <- modeldata_pf[modeldata_pf$typePlot%!in%"LF",] #lose 2 pots - Not enough of this plot type represented in fecundity data
 
 names(modeldata_pf)[5] <- "Treatment"
 modeldata_pf$Treatment <- revalue(modeldata_pf$Treatment, c("C"="High Resource", "S"="Low Resource"))
 
 
-pseedEst_pred <- ggplot(modeldata_pf[modeldata_pf$MaxPlantNum > 10,],aes(Treatment,seedEstMean, color=typePlot))+
-  # geom_point(aes(shape=typePlot, color=typePlot), size=3) + #facet_grid(. ~ Trt)
-  geom_jitter(aes(shape=typePlot, color=typePlot), size=3) +
+pseedEst_pred <- ggplot(modeldata_pf[modeldata_pf$MaxPlantNum > 10,],aes(typePlot, seedEstMean))+
+  stat_boxplot(geom = 'errorbar', width = 0.2)+ #, linetype="dotted"
+  geom_boxplot()+
+  facet_grid(. ~ Treatment) +
+  # geom_point(aes(shape=typePlot, color=typePlot), size=3) 
+  # geom_jitter(aes(shape=typePlot, color=typePlot), size=3) +
   # geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  labs(title ="(c)" , x = "prediction stand type", y = "estimate seed per fecund plant in each stand")+ 
+  labs(title ="Predition stands" , x = "Prediction type", y = "estimate seed per fecund plant in each stand")+ 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw() +
-  theme(legend.position=c(.9,.8))
+  theme_bw(base_size = 16) +
+  theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), 
+        strip.background = element_blank())  #panel.border = element_blank(),
+  # theme(legend.position=c(.9,.8))
 # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
 pseedEst_pred
 
