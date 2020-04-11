@@ -22,6 +22,7 @@ modeldata_f<-modeldata_f[!is.na(modeldata_f$seedEstMean),] #lose 18 damaged pots
 
 names(modeldata_f)[5] <- "Treatment"
 modeldata_f$Treatment <- revalue(modeldata_f$Treatment, c("C"="High Resource", "S"="Low Resource"))
+modeldata_f$Treatment <- revalue(modeldata_f$Treatment, c("High Resource"="High", "Low Resource"="Low"))
 
 
 ####seedEstMean####
@@ -31,10 +32,10 @@ pseedEst_div <- ggplot(modeldata_f[modeldata_f$MaxPlantNum > 10,],aes(divLevel,s
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   scale_colour_manual(values=jesse)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  labs(title ="(c)" , x = "stand diversity level", y = "estimate seed per fecund plant in each stand")+ 
+  labs(title ="(c)" , x = "stand diversity level", y = "estimated seed no. per fecund plant")+ 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
-  theme_bw(base_size = 16) +
-  theme(legend.position=c(.2,.85)) +
+  theme_bw(base_size = 24) +
+  theme(legend.position=c(.25,.80)) +
   theme(panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), 
     strip.background = element_blank())
@@ -78,7 +79,7 @@ pseedEst_pred <- ggplot(modeldata_pf[modeldata_pf$MaxPlantNum > 10,],aes(typePlo
   # geom_jitter(aes(shape=typePlot, color=typePlot), size=3) +
   # geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  labs(title ="Predition stands" , x = "Prediction type", y = "estimate seed per fecund plant in each stand")+ 
+  labs(title ="(b)" , x = "Prediction type", y = "estimate seed per fecund plant in each stand")+ 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
   theme_bw(base_size = 16) +
   theme(axis.text.x=element_text(angle=90,hjust=1)) +
