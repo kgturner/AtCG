@@ -69,7 +69,7 @@ pbiomass_ft <- ggplot(modeldata_m[modeldata_m$MaxPlantNum > 10,],aes(FT1001_mean
   scale_colour_manual(values=jesse)+
   # geom_jitter(aes(shape=trt, color=trt), size=3) +
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  labs(title = "(a)", x = "flowering time mean (FT)", y = "stand biomass at harvest")+
+  labs(title = "(a)", x = "flowering time mean (days)", y = "stand biomass at harvest (g)")+
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
   theme_bw(base_size = 24) +
   theme(legend.position="none") +  #c(.85,.85)
@@ -84,7 +84,8 @@ pbiomass_SLA <- ggplot(modeldata_m[modeldata_m$MaxPlantNum > 10,],aes(mean_SLAbv
   scale_colour_manual(values=jesse)+
   # geom_jitter(aes(shape=trt, color=trt), size=3) +
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  labs(title ="(b)" , x="SLA breeding value", y = "stand biomass at harvest")+
+  labs(title ="(b)", x = bquote('') , y = "stand biomass at harvest (g)")+
+  xlab(expression(SLA~BV~(ln~(cm^{"2"}/mg)))) + 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
   theme_bw(base_size = 24) +
   theme(legend.position="none") +   #c(.85,.85)
@@ -222,8 +223,8 @@ dev.off()
 
 # ####make multi figs####
 
-# pdf("AtCG_biomass_fec.pdf", useDingbats=FALSE,width=18.65, height=6, pointsize = 12)
-png("AtCG_biomass_fec.png",width=1265, height = 600, pointsize = 40)
+# pdf("AtCG_biomass_fec.pdf", useDingbats=FALSE,width=12.65, height=5, pointsize = 4)
+png("AtCG_biomass_fec.png",width=1265, height = 500, pointsize = 40)
 # svg("KTurnerFig3.svg", width=6.65, height=9, pointsize = 12)
 multiplot(pbiomass_ft, pbiomass_SLA,pseedEst_div, cols=3) 
 dev.off()

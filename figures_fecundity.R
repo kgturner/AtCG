@@ -32,13 +32,14 @@ pseedEst_div <- ggplot(modeldata_f[modeldata_f$MaxPlantNum > 10,],aes(divLevel,s
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   scale_colour_manual(values=jesse)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  labs(title ="(c)" , x = "stand diversity level", y = "estimated seed no. per fecund plant")+ 
+  labs(title ="(c)" , x = "no. of genotypes in stand", y = "estimated seed no. per fecund plant")+ 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
   theme_bw(base_size = 24) +
-  theme(legend.position=c(.25,.80)) +
+  theme(legend.position=c(.45,.70)) +
   theme(panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), 
-    strip.background = element_blank())
+    strip.background = element_blank())+
+  labs(color="Resource treatment", shape="Resource treatment")
 # ggtitle("(f)")+theme(plot.title = element_text(lineheight=2, face="bold",hjust = 0))
 pseedEst_div
 
