@@ -32,7 +32,7 @@ pseedEst_div <- ggplot(modeldata_f[modeldata_f$MaxPlantNum > 10,],aes(divLevel,s
   geom_smooth(method=glm, se=TRUE)+ #ylim(0,1)+
   scale_colour_manual(values=jesse)+
   #   coord_cartesian(ylim = c(0, 1.02)) +
-  labs(title ="(c)" , x = "no. of genotypes in stand", y = "mean estimated total fruit length (mm)")+ 
+  labs(title ="(c)" , x = "no. of genotypes in stand", y = "mean total fruit length (mm)")+ 
   #   annotate(geom="text", x=-4, y=3.5, label="(a)",fontface="bold", size=5)+
   theme_bw(base_size = 24) +
   theme(legend.position=c(.45,.70)) +
