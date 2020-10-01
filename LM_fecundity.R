@@ -37,6 +37,9 @@ summary(modeldata_f)
 summary(seed_mean$Pot.Number %!in% modeldata_f$PotID)
 
 summary(modeldata_f[modeldata_f$MaxPlantNum > 10,]) #196 pots
+####
+subset(modeldata_f, is.na(trt))
+subset(fecundityData, Pot.Number %in% c(16, 34))
 
 ####LM models - seedEstMean####
 # #the results tables with parameter estimate (slope), pvalue, and R2adjusted, 

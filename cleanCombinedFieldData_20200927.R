@@ -60,12 +60,14 @@ fieldD <- merge.data.frame(fieldD, modeldataSLABV[,c("PotID", "mean_SLAbv")], by
 # fieldD <- fieldD <- fieldD[order("PotID"),]
 
 ###paste in fecundity data####
-fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
+# fecundityData <- read.delim("Field-Fecundity-DATA-2018.txt", header = T)
+# 
+# seed_mean <- ddply(fecundityData, .(Pot.Number), summarize, 
+#                    seedEstMean=mean(Seed_Num_estimate),potTotSiliqueNum=sum(Total.Slique.Number),numFecPlants=length(Pot.Number))
+# 
+# fieldD <- merge.data.frame(fieldD, seed_mean[,c("Pot.Number", "seedEstMean")], by.x="PotID", by.y="Pot.Number", all.x=TRUE)
 
-seed_mean <- ddply(fecundityData, .(Pot.Number), summarize, 
-                   seedEstMean=mean(Seed_Num_estimate),potTotSiliqueNum=sum(Total.Slique.Number),numFecPlants=length(Pot.Number))
-
-fieldD <- merge.data.frame(fieldD, seed_mean[,c("Pot.Number", "seedEstMean")], by.x="PotID", by.y="Pot.Number", all.x=TRUE)
+#'seedEstMean' is the same as 'potF2' in CombinedFieldData_24Sep2020_ForFinalPaper.xlsx
 
 ####get rid of extra column####
 fieldD <- fieldD[,c(1,3:89)]

@@ -96,7 +96,7 @@ tmp6 <- rbind(tmp6, cbind(summary(tmod6)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj
 tmp6
 
 ####fecundity####
-modeldata_f<-modeldata[!is.na(modeldata$seedEstMean),]
+modeldata_f<-modeldata[!is.na(modeldata$potF2),]
 #202 obs. 88 var
 
 #table to save results
@@ -107,27 +107,27 @@ tmp4 <- c()#FT1001_mean
 tmp5 <- c() # meanGenD
 tmp6 <- c() # treeDiv
 
-tmod <- lm(seedEstMean  ~ trt + trt:divLevel, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
+tmod <- lm(potF2  ~ trt + trt:divLevel, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
 tmp <- rbind(tmp, cbind(summary(tmod)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod)[[9]]))
 tmp
 
-tmod2 <- lm(seedEstMean  ~ trt + trt:PC5dist_mean, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
+tmod2 <- lm(potF2  ~ trt + trt:PC5dist_mean, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
 tmp2 <- rbind(tmp2, cbind(summary(tmod2)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod2)[[9]]))
 tmp2
 
-tmod3 <- lm(seedEstMean  ~ trt + trt:mean_SLAbv, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
+tmod3 <- lm(potF2  ~ trt + trt:mean_SLAbv, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
 tmp3 <- rbind(tmp3, cbind(summary(tmod3)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod3)[[9]]))
 tmp3
 
-tmod4 <- lm(seedEstMean  ~ trt + trt:FT1001_mean, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
+tmod4 <- lm(potF2  ~ trt + trt:FT1001_mean, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
 tmp4 <- rbind(tmp4, cbind(summary(tmod4)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod4)[[9]]))
 tmp4
 
-tmod5 <- lm(seedEstMean  ~ trt + trt:meanGenD, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
+tmod5 <- lm(potF2  ~ trt + trt:meanGenD, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
 tmp5 <- rbind(tmp5, cbind(summary(tmod5)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod5)[[9]]))
 tmp5
 
-tmod6 <- lm(seedEstMean  ~ trt + trt:treeDiv, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
+tmod6 <- lm(potF2  ~ trt + trt:treeDiv, data = modeldata_f[modeldata_f$MaxPlantNum > 10,] )
 tmp6 <- rbind(tmp6, cbind(summary(tmod6)[[4]][,c('Estimate', 'Pr(>|t|)')], r2adj = summary(tmod6)[[9]]))
 tmp6
 
